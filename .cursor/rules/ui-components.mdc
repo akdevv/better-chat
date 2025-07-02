@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# UI Components & Design System
+
+## Shadcn Component Usage
+- **NEVER** manually create shadcn components
+- **ALWAYS** use the CLI command to add components:
+  ```bash
+  bun dlx shadcn@latest add component_name
+  ```
+- Examples:
+  ```bash
+  bun dlx shadcn@latest add button
+  bun dlx shadcn@latest add input
+  bun dlx shadcn@latest add dialog
+  ```
+
+## Icon Usage
+- **ALWAYS** use `react-icons` for icons
+- **NEVER** use `lucide-react` or other icon libraries
+- Install react-icons: `bun add react-icons`
+- Import specific icon sets as needed:
+  ```tsx
+  import { FaUser, FaHome } from 'react-icons/fa'
+  import { HiChatBubbleLeft } from 'react-icons/hi2'
+  import { IoSend } from 'react-icons/io5'
+  ```
+
+## Design Principles
+- Use colors ONLY from [globals.css](mdc:app/globals.css)
+- Create clean and modern designs
+- Ensure full responsiveness across all devices
+- Follow consistent spacing and typography patterns
+- Use CSS custom properties defined in globals.css

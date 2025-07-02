@@ -1,0 +1,37 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Project Structure & File Organization
+
+## Component Organization
+- Store ALL components in `/components` directory
+- Follow sub-folder structure based on feature/page groupings
+- Use descriptive folder names that match the application structure
+
+## Folder Structure Examples
+```
+/components/
+  ├── dashboard/
+  │   ├── home/           # Homepage components
+  │   ├── settings/       # Settings page components
+  │   └── profile/        # Profile page components
+  ├── chat/
+  │   ├── message/        # Message-related components
+  │   ├── sidebar/        # Chat sidebar components
+  │   └── input/          # Chat input components
+  ├── ui/                 # Reusable UI components (shadcn)
+  └── layout/             # Layout components
+```
+
+## Other Directory Rules
+- `/lib/types/` - All TypeScript type definitions
+- `/server/actions/` - Server actions code
+- `/lib/utils/` - Utility functions
+- `/lib/hooks/` - Custom React hooks
+
+## File Naming
+- Use PascalCase for component files: `ChatMessage.tsx`
+- Use camelCase for utility files: `formatDate.ts`
+- Use kebab-case for page files: `chat-page.tsx`

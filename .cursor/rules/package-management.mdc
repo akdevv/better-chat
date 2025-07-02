@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Package Management & Build Tools
+
+## Bun Usage
+- **ALWAYS** use `bun` for all package management and script execution
+- Install packages: `bun add package-name`
+- Install dev dependencies: `bun add -d package-name`
+- Run scripts: `bun run script-name`
+- Execute commands: `bun dlx command`
+
+## Examples
+```bash
+# Installing packages
+bun add react-hook-form zod
+bun add -d @types/node
+
+# Running scripts
+bun run dev
+bun run build
+
+# Using dlx for one-time commands
+bun dlx shadcn@latest add button
+```
+
+## Never Use
+- Do not use `npm`, `yarn`, or `pnpm`
+- Always prefer `bun` commands in all scenarios

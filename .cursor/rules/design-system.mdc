@@ -1,0 +1,49 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Design System & Colors
+
+## Color Usage
+- **ONLY** use colors defined in [globals.css](mdc:app/globals.css)
+- Use CSS custom properties for all color references
+- Support both light and dark mode variants
+
+## Available Color Variables
+```css
+/* Background & Foreground */
+--background, --foreground
+--card, --card-foreground
+--popover, --popover-foreground
+
+/* Interactive Elements */
+--primary, --primary-foreground
+--secondary, --secondary-foreground
+--accent, --accent-foreground
+--muted, --muted-foreground
+
+/* States */
+--destructive, --destructive-foreground
+--border, --input, --ring
+
+/* Sidebar */
+--sidebar, --sidebar-foreground
+--sidebar-primary, --sidebar-primary-foreground
+--sidebar-accent, --sidebar-accent-foreground
+--sidebar-border, --sidebar-ring
+```
+
+## Design Principles
+- Clean and modern aesthetic
+- Consistent spacing using Tailwind scale
+- Responsive design for all screen sizes
+- Smooth animations and transitions
+- Accessible color contrast ratios
+- Typography using Syne font family
+
+## Responsive Breakpoints
+- Mobile: `sm:` (640px+)
+- Tablet: `md:` (768px+)
+- Desktop: `lg:` (1024px+)
+- Large: `xl:` (1280px+)

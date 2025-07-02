@@ -1,0 +1,41 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Forms & Validation
+
+## Required Libraries
+- **ALWAYS** use `react-hook-form` for form management
+- **ALWAYS** use `zod` for validation schemas
+
+## Form Implementation Pattern
+```tsx
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+// Define schema
+const formSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+})
+
+type FormData = z.infer<typeof formSchema>
+
+// Use in component
+const form = useForm<FormData>({
+  resolver: zodResolver(formSchema),
+  defaultValues: {
+    email: '',
+    password: '',
+  },
+})
+```
+
+## Best Practices
+- Define validation schemas using Zod
+- Use TypeScript inference from Zod schemas
+- Implement proper error handling and display
+- Use controlled components with react-hook-form
+- Validate on submit and provide real-time feedback

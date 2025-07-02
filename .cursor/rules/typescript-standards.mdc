@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# TypeScript Standards
+
+## Type Safety Requirements
+- **ALWAYS** write code in TypeScript with proper type safety
+- Use strict TypeScript configuration
+- Define explicit return types for functions
+- Avoid `any` type - use proper type definitions instead
+- Use type assertions sparingly and only when necessary
+
+## Type Organization
+- Store all custom types in `/lib/types/` directory
+- Create separate type files for different domains
+- Use proper interface and type definitions
+- Export types from index files for clean imports
+
+## Example Structure
+```
+/lib/types/
+  ├── index.ts          # Main type exports
+  ├── user.ts           # User-related types
+  ├── chat.ts           # Chat-related types
+  └── api.ts            # API response types
+```
+
+## Best Practices
+- Use `interface` for object shapes that might be extended
+- Use `type` for unions, primitives, and computed types
+- Always type component props
+- Use generics for reusable type definitions
