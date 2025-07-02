@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap');
 
-
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -210,6 +209,5 @@
     -webkit-text-fill-color: var(--foreground) !important;
     transition: background-color 5000s ease-in-out 0s !important;
   }
-  
 
 }

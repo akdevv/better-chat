@@ -10,34 +10,34 @@
 
 ### 2. Core Dependencies Installation
 - [x] Install ShadCN UI: `npx shadcn-ui@latest init`
-- [ ] Install Clerk for authentication: `npm install @clerk/nextjs`
-- [ ] Install Prisma ORM: `npm install prisma @prisma/client`
-- [ ] Install database client (PostgreSQL): `npm install pg @types/pg`
-- [ ] Install additional utilities: `npm install zod react-hook-form @hookform/resolvers`
+- [x] Install Clerk for authentication: `npm install @clerk/nextjs`
+- [x] Install Prisma ORM: `npm install prisma @prisma/client`
+- [x] Install database client (PostgreSQL): `npm install pg @types/pg`
+- [x] Install additional utilities: `npm install zod react-hook-form @hookform/resolvers`
 
 ### 3. Environment Configuration
-- [ ] Create `.env.local` file with placeholder variables
-- [ ] Set up Clerk environment variables (publishable/secret keys)
-- [ ] Configure database connection string
-- [ ] Add other API keys placeholders (OpenAI, Claude, etc.)
+- [x] Create `.env.local` file with placeholder variables
+- [x] Set up Clerk environment variables (publishable/secret keys)
+- [x] Configure database connection string
+- [x] Add other API keys placeholders (OpenAI, Claude, etc.)
 
 ## Phase 1: Foundation & Authentication (Week 1)
 
 ### 4. Database Schema Design
-- [ ] Design Prisma schema for core entities:
-  - [ ] User (id, clerkId, email, createdAt, updatedAt)
-  - [ ] Chat (id, userId, title, createdAt, updatedAt)
-  - [ ] Message (id, chatId, role, content, createdAt)
-  - [ ] UserSettings (userId, apiKeys, preferences)
-- [ ] Run `npx prisma migrate dev` to create initial migration
-- [ ] Generate Prisma client: `npx prisma generate`
+- [x] Design Prisma schema for core entities:
+  - [x] User (id, clerkId, email, createdAt, updatedAt)
+  - [x] Chat (id, userId, title, createdAt, updatedAt)
+  - [x] Message (id, chatId, role, content, createdAt)
+  - [x] UserSettings (userId, apiKeys, preferences)
+- [x] Run `npx prisma migrate dev` to create initial migration
+- [x] Generate Prisma client: `npx prisma generate`
 
 ### 5. Clerk Authentication Setup
-- [ ] Configure Clerk provider in `app/layout.tsx`
-- [ ] Create middleware for protected routes
-- [ ] Set up sign-in/sign-up pages using Clerk components
-- [ ] Configure Clerk webhooks for user creation/deletion
-- [ ] Test authentication flow completely
+- [x] Configure Clerk provider in `app/layout.tsx`
+- [x] Create middleware for protected routes
+- [x] Set up sign-in/sign-up pages using Clerk components
+- [x] Configure Clerk webhooks for user creation/deletion
+- [x] Test authentication flow completely
 
 ### 6. Basic App Structure
 - [ ] Create folder structure: `app/(auth)`, `app/(dashboard)`, `components`, `lib`, `types`

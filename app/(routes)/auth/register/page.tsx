@@ -6,16 +6,18 @@ import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { loginSchema } from "@/schema/auth";
+import { registerSchema } from "@/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { registerUser } from "@/server/actions/auth";
 
 import { toast } from "sonner";
 import { FaGoogle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { MdErrorOutline } from "react-icons/md";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
 import AuthSeparator from "@/components/auth/auth-seprator";
 
-export default function LoginPage() {
+export default function RegisterPage() {
 	const router = useRouter();
 	const [error, setError] = useState<string | null>(null);
 	const [isPending, setIsPending] = useState<boolean>(false);
@@ -25,30 +27,46 @@ export default function LoginPage() {
 		register,
 		handleSubmit,
 		formState: { errors },
-	} = useForm({ resolver: zodResolver(loginSchema) });
+	} = useForm({ resolver: zodResolver(registerSchema) });
 
-	const onSubmit = async (data: { email: string; password: string }) => {
-		setError(null);
-		setIsPending(true);
+	const onSubmit = async (data: {
+		name: string;
+		email: string;
+		password: string;
+	}) => {
+		const { name, email, password } = data;
+		if (!name || !email || !password) {
+			toast.error("Please fill in all fields");
+			return;
+		}
 
 		try {
-			const res = await signIn("credentials", {
-				email: data.email,
-				password: data.password,
+			setError(null);
+			setIsPending(true);
+
+			await registerUser(data);
+			toast.success("Account created successfully");
+
+			// sign in user
+			const signInResult = await signIn("credentials", {
+				email,
+				password,
 				redirect: false,
 			});
 
-			if (res?.error) {
-				const errorMessage =
-					`Error: ${res?.error}` || "Invalid email or password";
-				setError(errorMessage);
-				toast.error(errorMessage);
-			} else {
+			if (signInResult?.error) {
 				router.push("/chat/new");
+			} else {
+				setError(
+					"Account created but failed to sign in. Please try logging in."
+				);
+				toast.error(
+					"Account created but failed to sign in. Please try logging in."
+				);
 			}
-		} catch (error) {
+		} catch (err) {
 			const errorMessage =
-				error instanceof Error ? error.message : "An error occurred!";
+				err instanceof Error ? err.message : "An error occurred!";
 			setError(errorMessage);
 			toast.error(errorMessage);
 		} finally {
@@ -60,14 +78,38 @@ export default function LoginPage() {
 		<div className="mx-auto w-full max-w-md">
 			<div className="text-center md:text-left mb-8">
 				<h1 className="text-3xl md:text-4xl font-bold mb-2">
-					Welcome back
+					Create an account
 				</h1>
 				<p className="text-muted-foreground">
-					Please enter your details to sign in
+					Please enter your details to create an account
 				</p>
 			</div>
 
 			<form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+				{/* Error Message */}
+				{error && (
+					<div className="bg-red-800/30 border border-red-700 text-white p-3 rounded-md flex items-center gap-2">
+						<MdErrorOutline className="w-5 h-5" />
+						<p className="text-sm">{error}</p>
+					</div>
+				)}
+
+				{/* Name */}
+				<div className="space-y-1">
+					<input
+						{...register("name")}
+						type="text"
+						placeholder="Name"
+						disabled={isPending}
+						className="w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent"
+					/>
+					{errors.name && (
+						<p className="text-red-700 text-xs">
+							{errors.name.message}
+						</p>
+					)}
+				</div>
+
 				{/* Email */}
 				<div className="space-y-1">
 					<input
@@ -75,10 +117,7 @@ export default function LoginPage() {
 						type="email"
 						placeholder="Email"
 						disabled={isPending}
-						className={cn(
-							"w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent",
-							errors.email && "border-2 border-red-700"
-						)}
+						className="w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent"
 					/>
 					{errors.email && (
 						<p className="text-red-700 text-xs">
@@ -119,23 +158,13 @@ export default function LoginPage() {
 					)}
 				</div>
 
-				{/* Remember me & Forgot password */}
-				<div className="flex justify-end w-full">
-					<Link
-						href=""
-						className="text-sm text-primary hover:underline"
-					>
-						Forgot password?
-					</Link>
-				</div>
-
-				{/* Login Button */}
+				{/* Register Button */}
 				<Button
 					type="submit"
 					disabled={isPending}
 					className="w-full py-6 bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer"
 				>
-					{isPending ? "Logging in..." : "Log in"}
+					{isPending ? "Creating account..." : "Create account"}
 				</Button>
 
 				<AuthSeparator text="Or continue with" />
@@ -153,12 +182,12 @@ export default function LoginPage() {
 				{/* Register Link */}
 				<div className="text-center mt-6">
 					<p className="text-sm text-muted-foreground">
-						Don&apos;t have an account?{" "}
+						Already have an account?{" "}
 						<Link
-							href={`/auth/register`}
+							href={`/auth/login`}
 							className="text-primary hover:underline"
 						>
-							Register
+							Login
 						</Link>
 					</p>
 				</div>
