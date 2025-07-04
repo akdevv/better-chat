@@ -7,6 +7,14 @@ export type Chat = {
 	messages: Message[];
 };
 
+export type ChatSidebarItem = {
+	id: string;
+	title: string;
+	isStarred: boolean;
+	createdAt: Date;
+	updatedAt: Date;
+};
+
 export type Message = {
 	id: string;
 	chatId: string;

@@ -62,12 +62,15 @@ model Chat {
   id        String    @id @default(cuid())
   userId    String
   title     String    @default("Untitled Chat")
+  isStarred Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
 
-  @@index([userId])
+ @@index([userId])
+  @@index([userId, isStarred])
+  @@index([userId, createdAt])
 }
 
 model Message {

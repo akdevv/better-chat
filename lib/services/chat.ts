@@ -1,6 +1,7 @@
+import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { nanoid } from "nanoid";
+import { ChatSidebarItem } from "@/lib/types/chat";
 
 export const getUserChats = async (
 	userId: string,
@@ -19,13 +20,16 @@ export const getUserChats = async (
 			db.chat.count({ where: { userId } }),
 		]);
 
+		const formattedChats: ChatSidebarItem[] = chats.map((chat) => ({
+			id: chat.id,
+			title: chat.title,
+			isStarred: chat.isStarred,
+			createdAt: chat.createdAt,
+			updatedAt: chat.updatedAt,
+		}));
+
 		return {
-			chats: chats.map((chat) => ({
-				id: chat.id,
-				title: chat.title,
-				createdAt: chat.createdAt,
-				updatedAt: chat.updatedAt,
-			})),
+			chats: formattedChats,
 			total,
 		};
 	} catch (error) {
@@ -90,5 +94,95 @@ export const createChat = async (model: string, initialMessage: string) => {
 	} catch (error) {
 		console.error("Error creating chat:", error);
 		return { error: "Error creating chat" };
+	}
+};
+
+export const deleteChat = async (chatId: string, userId: string) => {
+	try {
+		const chat = await db.chat.findUnique({
+			where: { id: chatId, userId },
+		});
+		if (!chat) {
+			return { error: "Chat not found or unauthorized" };
+		}
+
+		await db.chat.delete({
+			where: { id: chatId },
+		});
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error deleting chat:", error);
+		return { error: "Error deleting chat" };
+	}
+};
+
+export const renameChat = async (
+	chatId: string,
+	userId: string,
+	title: string
+) => {
+	try {
+		if (!title || title.trim().length === 0) {
+			return { error: "Title is required" };
+		}
+
+		if (title.length > 100) {
+			return { error: "Title must be less than 100 characters" };
+		}
+
+		const chat = await db.chat.findUnique({
+			where: { id: chatId, userId },
+		});
+
+		if (!chat) {
+			return { error: "Chat not found or unauthorized" };
+		}
+
+		const updatedChat = await db.chat.update({
+			where: { id: chatId },
+			data: { title: title.trim() },
+			select: {
+				id: true,
+				title: true,
+				isStarred: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		return { success: true, chat: updatedChat };
+	} catch (error) {
+		console.error("Error renaming chat:", error);
+		return { error: "Error renaming chat" };
+	}
+};
+
+export const toggleStar = async (chatId: string, userId: string) => {
+	try {
+		const chat = await db.chat.findUnique({
+			where: { id: chatId, userId },
+		});
+
+		if (!chat) {
+			return { error: "Chat not found or unauthorized" };
+		}
+
+		const updatedChat = await db.chat.update({
+			where: { id: chatId },
+			data: { isStarred: !chat.isStarred, updatedAt: new Date() },
+			select: {
+				id: true,
+				title: true,
+				isStarred: true,
+				createdAt: true,
+				updatedAt: true,
+			},
+		});
+
+		return { success: true, chat: updatedChat };
+	} catch (error) {
+		console.error("Error toggling star:", error);
+		return { error: "Error toggling star" };
 	}
 };

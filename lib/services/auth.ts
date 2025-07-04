@@ -1,3 +1,5 @@
+"use server";
+
 import { hash } from "bcryptjs";
 import { db } from "@/lib/prisma";
 

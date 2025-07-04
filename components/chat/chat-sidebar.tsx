@@ -3,34 +3,19 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { ChatSidebarItem } from "@/lib/types/chat";
 import { usePathname, useRouter } from "next/navigation";
 
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { FiSidebar } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaRegMessage, FaPlus, FaXmark } from "react-icons/fa6";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { RxDotsHorizontal } from "react-icons/rx";
-import { RiEditLine } from "react-icons/ri";
-import { CiStar } from "react-icons/ci";
-import { MdDeleteOutline } from "react-icons/md";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface Chat {
-	id: string;
-	title: string;
-	createdAt: string;
-	updatedAt: string;
-}
+import ChatDropdownMenu from "./chat-dropdown-menu";
 
 interface ChatsResponse {
-	chats: Chat[];
+	chats: ChatSidebarItem[];
 	pagination: {
 		limit: number;
 		offset: number;
@@ -38,7 +23,13 @@ interface ChatsResponse {
 	};
 }
 
-const ChatPreview = ({ chat }: { chat: Chat }) => {
+const ChatPreview = ({
+	chat,
+	onChatDelete,
+}: {
+	chat: ChatSidebarItem;
+	onChatDelete: (updatedChat: ChatSidebarItem) => void;
+}) => {
 	const [menuOpen, setMenuOpen] = useState(false);
 
 	return (
@@ -51,45 +42,13 @@ const ChatPreview = ({ chat }: { chat: Chat }) => {
 					{chat.title}
 				</p>
 			</div>
-			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						size="sm"
-						className={`h-6 w-6 p-0 cursor-pointer transition-opacity focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-							menuOpen
-								? "opacity-100"
-								: "opacity-0 group-hover:opacity-100"
-						}`}
-						onClick={(e) => {
-							e.stopPropagation();
-							setMenuOpen((open) => !open);
-						}}
-						onMouseDown={(e) => e.stopPropagation()}
-						aria-label="Chat options"
-						style={{
-							outline: "none",
-							boxShadow: "none",
-						}}
-					>
-						<RxDotsHorizontal className="h-3 w-3" />
-					</Button>
-				</DropdownMenuTrigger>
-				<DropdownMenuContent align="end" className="w-40">
-					<DropdownMenuItem>
-						<RiEditLine className="h-3 w-3 mr-2" />
-						Rename
-					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<CiStar className="h-3 w-3 mr-2" />
-						Star
-					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<MdDeleteOutline className="h-3 w-3 mr-2" />
-						Delete
-					</DropdownMenuItem>
-				</DropdownMenuContent>
-			</DropdownMenu>
+			<ChatDropdownMenu
+				chat={chat}
+				onChatUpdate={() => {}}
+				onChatDelete={() => onChatDelete(chat)}
+				menuOpen={menuOpen}
+				setMenuOpen={setMenuOpen}
+			/>
 		</Link>
 	);
 };
@@ -108,13 +67,32 @@ export default function ChatSidebar({
 
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
-	const [chats, setChats] = useState<Chat[]>([]);
+	const [chats, setChats] = useState<ChatSidebarItem[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
 	const [offset, setOffset] = useState(0);
 
 	const LIMIT = 50;
+
+	const handleChatDelete = (updatedChat: ChatSidebarItem) => {
+		setChats((prevChats) => {
+			const updatedChats = prevChats.map((chat) =>
+				chat.id === updatedChat.id ? updatedChat : chat
+			);
+			return updatedChats.sort((a, b) => {
+				// First, sort by starred status (starred chats first)
+				if (a.isStarred !== b.isStarred) {
+					return a.isStarred ? -1 : 1;
+				}
+				// Then sort by updatedAt (most recent first)
+				return (
+					new Date(b.updatedAt).getTime() -
+					new Date(a.updatedAt).getTime()
+				);
+			});
+		});
+	};
 
 	const fetchChats = async (loadMore: boolean = false) => {
 		const currentOffset = loadMore ? offset : 0;
@@ -300,6 +278,7 @@ export default function ChatSidebar({
 										<ChatPreview
 											key={chat.id}
 											chat={chat}
+											onChatDelete={handleChatDelete}
 										/>
 									))}
 								</div>

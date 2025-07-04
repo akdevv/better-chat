@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
 		}
 
 		const chatId = await createChat(model, initialMessage);
-		return NextResponse.json({ chatId });
+		return NextResponse.json(chatId, { status: 200 });
 	} catch (error) {
 		console.error("Error creating chat: ", error);
 		return NextResponse.json(
