@@ -62,7 +62,7 @@ function CodeBlock({
 				</span>
 				<button
 					onClick={copyToClipboard}
-					className="flex items-center gap-1.5 px-2 py-1 text-xs bg-background/60 hover:bg-background/80 border border-border/40 rounded-md transition-colors font-medium text-muted-foreground hover:text-foreground"
+					className="flex cursor-pointer items-center gap-1.5 px-2 py-1 text-xs bg-background/60 hover:bg-background/80 border border-border/40 rounded-md transition-colors font-medium text-muted-foreground hover:text-foreground"
 				>
 					{copied ? (
 						<>
@@ -103,6 +103,29 @@ export function MarkdownRenderer({
 		}
 		return children;
 	};
+
+	// Preprocess content to ensure markdown links are properly formatted
+	const preprocessContent = (text: string): string => {
+		// Handle markdown links that might not be getting parsed
+		// Pattern: [text](url) - ensure proper spacing and formatting
+		return text.replace(
+			/\[([^\]]+)\]\(([^)]+)\)/g,
+			(match, linkText, url) => {
+				// Clean up the URL (remove extra spaces, ensure proper protocol)
+				const cleanUrl = url.trim();
+				const cleanText = linkText.trim();
+
+				// If URL doesn't start with http/https, add https://
+				const finalUrl = cleanUrl.match(/^https?:\/\//)
+					? cleanUrl
+					: `https://${cleanUrl}`;
+
+				return `[${cleanText}](${finalUrl})`;
+			}
+		);
+	};
+
+	const processedContent = preprocessContent(content);
 
 	return (
 		<div
@@ -150,22 +173,32 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"code"> & {
 						inline?: boolean;
 					}) => {
+						const content = stripWhitespace(children);
+
+						if (
+							!content ||
+							(typeof content === "string" &&
+								content.trim() === "")
+						) {
+							return null;
+						}
+
 						if (inline) {
 							return (
 								<code
 									{...props}
 									className="bg-muted/40 text-foreground px-1.5 py-0.5 rounded text-xs font-mono"
 								>
-									{children}
+									{content}
 								</code>
 							);
 						}
 						return (
 							<code
 								{...props}
-								className="text-foreground font-mono"
+								className="bg-muted text-foreground px-1.5 py-0.5 rounded-full text-xs font-mono"
 							>
-								{children}
+								{content}
 							</code>
 						);
 					},
@@ -262,7 +295,7 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"ul">) => (
 						<ul
 							{...props}
-							className="list-disc list-outside ml-6 pl-2 space-y-1 text-muted-foreground my-2"
+							className="list-disc list-outside ml-6 pl-2 space-y-1 text-foreground my-2"
 						>
 							{stripWhitespace(children)}
 						</ul>
@@ -274,7 +307,7 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"ol">) => (
 						<ol
 							{...props}
-							className="list-decimal list-outside ml-6 pl-2 space-y-1 text-muted-foreground my-2"
+							className="list-decimal list-outside ml-6 pl-2 space-y-1 text-foreground my-2"
 						>
 							{stripWhitespace(children)}
 						</ol>
@@ -286,7 +319,7 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"li">) => (
 						<li
 							{...props}
-							className="text-muted-foreground leading-relaxed"
+							className="text-foreground leading-relaxed"
 						>
 							{stripWhitespace(children)}
 						</li>
@@ -295,14 +328,62 @@ export function MarkdownRenderer({
 					p: ({
 						children,
 						...props
-					}: ComponentPropsWithoutRef<"p">) => (
-						<p
-							{...props}
-							className="text-muted-foreground leading-relaxed"
-						>
-							{stripWhitespace(children)}
-						</p>
-					),
+					}: ComponentPropsWithoutRef<"p">) => {
+						// Process paragraph content to handle potential inline links
+						const processTextNodes = (
+							node: React.ReactNode
+						): React.ReactNode => {
+							if (typeof node === "string") {
+								// Check if this text contains markdown-style links that weren't parsed
+								if (node.includes("[") && node.includes("](")) {
+									// Split the text and create proper link elements
+									const parts = node.split(
+										/(\[[^\]]+\]\([^)]+\))/g
+									);
+									return parts.map((part, index) => {
+										const linkMatch = part.match(
+											/\[([^\]]+)\]\(([^)]+)\)/
+										);
+										if (linkMatch) {
+											const [, linkText, url] = linkMatch;
+											const cleanUrl = url.trim();
+											const finalUrl = cleanUrl.match(
+												/^https?:\/\//
+											)
+												? cleanUrl
+												: `https://${cleanUrl}`;
+											return (
+												<a
+													key={index}
+													href={finalUrl}
+													className="text-primary hover:text-primary/80 underline transition-colors"
+													target="_blank"
+													rel="noopener noreferrer"
+												>
+													{linkText.trim()}
+												</a>
+											);
+										}
+										return part;
+									});
+								}
+								return node;
+							}
+							if (Array.isArray(node)) {
+								return node.map(processTextNodes);
+							}
+							return node;
+						};
+
+						return (
+							<p
+								{...props}
+								className="text-foreground leading-relaxed"
+							>
+								{processTextNodes(stripWhitespace(children))}
+							</p>
+						);
+					},
 
 					strong: ({
 						children,
@@ -327,24 +408,34 @@ export function MarkdownRenderer({
 
 					a: ({
 						children,
+						href,
 						...props
-					}: ComponentPropsWithoutRef<"a">) => (
-						<a
-							{...props}
-							className="text-primary hover:text-primary/80 underline transition-colors"
-							target="_blank"
-							rel="noopener noreferrer"
-						>
-							{stripWhitespace(children)}
-						</a>
-					),
+					}: ComponentPropsWithoutRef<"a">) => {
+						// Ensure href is properly formatted
+						const cleanHref = href?.trim() || "";
+						const finalHref = cleanHref.match(/^https?:\/\//)
+							? cleanHref
+							: `https://${cleanHref}`;
+
+						return (
+							<a
+								{...props}
+								href={finalHref}
+								className="text-primary hover:text-primary/80 underline transition-colors"
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								{stripWhitespace(children)}
+							</a>
+						);
+					},
 
 					hr: ({ ...props }: ComponentPropsWithoutRef<"hr">) => (
 						<hr {...props} className="my-4 border-border" />
 					),
 				}}
 			>
-				{content}
+				{processedContent}
 			</ReactMarkdown>
 		</div>
 	);
