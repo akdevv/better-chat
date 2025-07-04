@@ -45,7 +45,7 @@ export default function LoginPage() {
 				setError(errorMessage);
 				toast.error(errorMessage);
 			} else {
-				router.push("/chat/new");
+				router.push("/chat");
 			}
 		} catch (err) {
 			const errorMessage =

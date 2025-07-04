@@ -1,11 +1,98 @@
 "use client";
-import { useState, useEffect } from "react";
 
+import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
+
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { FiSidebar } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaRegMessage, FaPlus, FaXmark } from "react-icons/fa6";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RxDotsHorizontal } from "react-icons/rx";
+import { RiEditLine } from "react-icons/ri";
+import { CiStar } from "react-icons/ci";
+import { MdDeleteOutline } from "react-icons/md";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Chat {
+	id: string;
+	title: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+interface ChatsResponse {
+	chats: Chat[];
+	pagination: {
+		limit: number;
+		offset: number;
+		total: number;
+	};
+}
+
+const ChatPreview = ({ chat }: { chat: Chat }) => {
+	const [menuOpen, setMenuOpen] = useState(false);
+
+	return (
+		<Link
+			href={`/chat/${chat.id}`}
+			className="group relative flex items-center gap-3 px-2 rounded-lg cursor-pointer transition-colors hover:bg-accent min-h-[40px]"
+		>
+			<div className="flex-1 min-w-0">
+				<p className="text-sm font-medium font-accent-foreground truncate">
+					{chat.title}
+				</p>
+			</div>
+			<DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						size="sm"
+						className={`h-6 w-6 p-0 cursor-pointer transition-opacity focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
+							menuOpen
+								? "opacity-100"
+								: "opacity-0 group-hover:opacity-100"
+						}`}
+						onClick={(e) => {
+							e.stopPropagation();
+							setMenuOpen((open) => !open);
+						}}
+						onMouseDown={(e) => e.stopPropagation()}
+						aria-label="Chat options"
+						style={{
+							outline: "none",
+							boxShadow: "none",
+						}}
+					>
+						<RxDotsHorizontal className="h-3 w-3" />
+					</Button>
+				</DropdownMenuTrigger>
+				<DropdownMenuContent align="end" className="w-40">
+					<DropdownMenuItem>
+						<RiEditLine className="h-3 w-3 mr-2" />
+						Rename
+					</DropdownMenuItem>
+					<DropdownMenuItem>
+						<CiStar className="h-3 w-3 mr-2" />
+						Star
+					</DropdownMenuItem>
+					<DropdownMenuItem>
+						<MdDeleteOutline className="h-3 w-3 mr-2" />
+						Delete
+					</DropdownMenuItem>
+				</DropdownMenuContent>
+			</DropdownMenu>
+		</Link>
+	);
+};
 
 export default function ChatSidebar({
 	collapsed,
@@ -14,8 +101,60 @@ export default function ChatSidebar({
 	collapsed: boolean;
 	onToggle: () => void;
 }) {
+	const router = useRouter();
+	const pathname = usePathname();
+
+	const { data: session } = useSession();
+
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 	const [isMobile, setIsMobile] = useState(false);
+	const [chats, setChats] = useState<Chat[]>([]);
+	const [isLoading, setIsLoading] = useState(false);
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
+	const [hasMore, setHasMore] = useState(true);
+	const [offset, setOffset] = useState(0);
+
+	const LIMIT = 50;
+
+	const fetchChats = async (loadMore: boolean = false) => {
+		const currentOffset = loadMore ? offset : 0;
+		const loading = loadMore ? setIsLoadingMore : setIsLoading;
+
+		loading(true);
+
+		try {
+			const res = await fetch(
+				`/api/chats?limit=${LIMIT}&offset=${currentOffset}`
+			);
+
+			if (!res.ok) {
+				throw new Error("Failed to fetch chats");
+			}
+
+			const data: ChatsResponse = await res.json();
+
+			if (loadMore) {
+				// append new chats to existing chats
+				setChats((prevChats) => [...prevChats, ...data.chats]);
+			} else {
+				// set chats to new chats
+				setChats(data.chats);
+			}
+
+			// update pagination
+			setOffset(currentOffset + LIMIT);
+			setHasMore(data.chats.length === LIMIT);
+		} catch (error) {
+			console.error("Error fetching chats: ", error);
+			setHasMore(false);
+		} finally {
+			loading(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchChats();
+	}, []);
 
 	// Check if we're on mobile
 	useEffect(() => {
@@ -46,12 +185,6 @@ export default function ChatSidebar({
 		return () =>
 			document.removeEventListener("mousedown", handleClickOutside);
 	}, [isMobile, isMobileMenuOpen]);
-
-	const user = {
-		name: "John Doe",
-		email: "john@example.com",
-		avatar: null,
-	};
 
 	const handleMobileToggle = () => {
 		if (isMobile) {
@@ -130,14 +263,16 @@ export default function ChatSidebar({
 
 				{/* new chat button */}
 				<div className="p-3">
-					<Button
-						className={`w-full gap-2 cursor-pointer ${
-							collapsed && !isMobile ? "px-2" : ""
-						}`}
-					>
-						<FaPlus />
-						{(!collapsed || isMobile) && "New Chat"}
-					</Button>
+					<Link href="/chat">
+						<Button
+							className={`w-full gap-2 cursor-pointer ${
+								collapsed && !isMobile ? "px-2" : ""
+							}`}
+						>
+							<FaPlus />
+							{(!collapsed || isMobile) && "New Chat"}
+						</Button>
+					</Link>
 				</div>
 
 				{/* chat list */}
@@ -148,7 +283,42 @@ export default function ChatSidebar({
 								Recent Chats
 							</h3>
 							<ScrollArea className="h-full">
-								<div className="space-y-1"></div>
+								<div className="space-y-0.5">
+									{isLoading && (
+										<div className="space-y-1">
+											{Array.from({ length: 5 }).map(
+												(_, index) => (
+													<Skeleton
+														key={index}
+														className="h-10 w-full animate-pulse"
+													/>
+												)
+											)}
+										</div>
+									)}
+									{chats.map((chat) => (
+										<ChatPreview
+											key={chat.id}
+											chat={chat}
+										/>
+									))}
+								</div>
+
+								{!isLoading && hasMore && (
+									<div className="flex justify-center mt-3">
+										<Button
+											variant="secondary"
+											className="cursor-pointer"
+											onClick={() => {
+												fetchChats();
+											}}
+										>
+											{isLoadingMore
+												? "Loading..."
+												: "Load More"}
+										</Button>
+									</div>
+								)}
 							</ScrollArea>
 						</div>
 					)}
@@ -162,16 +332,16 @@ export default function ChatSidebar({
 						}`}
 					>
 						<Avatar>
-							<AvatarImage src="https://github.com/shadcn.png" />
+							<AvatarImage src={session?.user?.image || ""} />
 							<AvatarFallback>CN</AvatarFallback>
 						</Avatar>
 						{(!collapsed || isMobile) && (
 							<div className="flex-1 min-w-0">
 								<p className="text-sm font-medium truncate">
-									{user?.name}
+									{session?.user?.name}
 								</p>
 								<p className="text-xs text-muted-foreground truncate">
-									{user?.email}
+									{session?.user?.email}
 								</p>
 							</div>
 						)}
@@ -181,224 +351,3 @@ export default function ChatSidebar({
 		</>
 	);
 }
-
-// import { useState } from "react";
-// import { Button } from "@/components/ui/button";
-// import { ScrollArea } from "@/components/ui/scroll-area";
-// import {
-// 	DropdownMenu,
-// 	DropdownMenuContent,
-// 	DropdownMenuItem,
-// 	DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu";
-// import {
-// 	MessageCircle,
-// 	Plus,
-// 	MoreHorizontal,
-// 	Edit,
-// 	Star,
-// 	Trash2,
-// 	Menu,
-// 	User,
-// } from "lucide-react";
-
-// interface Chat {
-// 	id: string;
-// 	name: string;
-// 	lastMessage?: string;
-// 	timestamp?: string;
-// }
-
-// interface SidebarChatPreviewProps {
-// 	chat: Chat;
-// 	collapsed: boolean;
-// }
-
-// function SidebarChatPreview({ chat, collapsed }: SidebarChatPreviewProps) {
-// 	const [isHovered, setIsHovered] = useState(false);
-
-// 	return (
-// 		<div
-// 			className={`group relative flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition-colors ${
-// 				collapsed ? "justify-center" : ""
-// 			}`}
-// 			onMouseEnter={() => setIsHovered(true)}
-// 			onMouseLeave={() => setIsHovered(false)}
-// 		>
-// 			<MessageCircle className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
-// 			{!collapsed && (
-// 				<>
-// 					<div className="flex-1 min-w-0">
-// 						<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-// 							{chat.name}
-// 						</p>
-// 						{chat.lastMessage && (
-// 							<p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-// 								{chat.lastMessage}
-// 							</p>
-// 						)}
-// 					</div>
-// 					{isHovered && (
-// 						<DropdownMenu>
-// 							<DropdownMenuTrigger asChild>
-// 								<Button
-// 									variant="ghost"
-// 									size="sm"
-// 									className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-// 								>
-// 									<MoreHorizontal className="h-3 w-3" />
-// 								</Button>
-// 							</DropdownMenuTrigger>
-// 							<DropdownMenuContent align="end" className="w-40">
-// 								<DropdownMenuItem>
-// 									<Edit className="h-3 w-3 mr-2" />
-// 									Rename
-// 								</DropdownMenuItem>
-// 								<DropdownMenuItem>
-// 									<Star className="h-3 w-3 mr-2" />
-// 									Star
-// 								</DropdownMenuItem>
-// 								<DropdownMenuItem className="text-red-600 dark:text-red-400">
-// 									<Trash2 className="h-3 w-3 mr-2" />
-// 									Delete
-// 								</DropdownMenuItem>
-// 							</DropdownMenuContent>
-// 						</DropdownMenu>
-// 					)}
-// 				</>
-// 			)}
-// 		</div>
-// 	);
-// }
-
-// export default function ChatSidebar({
-// 	collapsed,
-// 	onToggle,
-// }: {
-// 	collapsed: boolean;
-// 	onToggle: () => void;
-// }) {
-// 	// Mock data for demonstration
-// 	const chats: Chat[] = [
-// 		{
-// 			id: "1",
-// 			name: "Project Discussion",
-// 			lastMessage: "Let's discuss the new features...",
-// 			timestamp: "2m ago",
-// 		},
-// 		{
-// 			id: "2",
-// 			name: "Team Meeting Notes",
-// 			lastMessage: "Action items from today's meeting",
-// 			timestamp: "1h ago",
-// 		},
-// 		{
-// 			id: "3",
-// 			name: "Code Review",
-// 			lastMessage: "Please review the PR when you get a chance",
-// 			timestamp: "3h ago",
-// 		},
-// 		{
-// 			id: "4",
-// 			name: "Bug Report Analysis",
-// 			lastMessage: "Found the root cause of the issue",
-// 			timestamp: "1d ago",
-// 		},
-// 		{
-// 			id: "5",
-// 			name: "Feature Planning",
-// 			lastMessage: "Let's plan the next sprint",
-// 			timestamp: "2d ago",
-// 		},
-// 	];
-
-// 	const user = {
-// 		name: "John Doe",
-// 		email: "john@example.com",
-// 		avatar: null,
-// 	};
-
-// 	return (
-// 		<div
-// 			className={`h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300 ${
-// 				collapsed ? "w-16" : "w-80"
-// 			}`}
-// 		>
-// 			{/* Header with Logo and Toggle */}
-// 			<div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-// 				{!collapsed && (
-// 					<div className="flex items-center gap-2">
-// 						<MessageCircle className="h-6 w-6 text-blue-600" />
-// 						<span className="font-bold text-lg text-gray-900 dark:text-gray-100">
-// 							BetterChat
-// 						</span>
-// 					</div>
-// 				)}
-// 				<Button
-// 					variant="ghost"
-// 					size="sm"
-// 					onClick={onToggle}
-// 					className={`h-8 w-8 p-0 ${collapsed ? "mx-auto" : ""}`}
-// 				>
-// 					<Menu className="h-4 w-4" />
-// 				</Button>
-// 			</div>
-
-// 			{/* New Chat Button */}
-// 			<div className="p-4">
-// 				<Button
-// 					className={`w-full gap-2 ${
-// 						collapsed ? "px-2" : ""
-// 					} bg-blue-600 hover:bg-blue-700 text-white`}
-// 					size={collapsed ? "sm" : "default"}
-// 				>
-// 					<Plus className="h-4 w-4" />
-// 					{!collapsed && "New Chat"}
-// 				</Button>
-// 			</div>
-
-// 			{/* Chat List */}
-// 			<div className="flex-1 px-4">
-// 				{!collapsed && (
-// 					<h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-// 						Recent Chats
-// 					</h3>
-// 				)}
-// 				<ScrollArea className="h-full">
-// 					<div className="space-y-1">
-// 						{chats.map((chat) => (
-// 							<SidebarChatPreview
-// 								key={chat.id}
-// 								chat={chat}
-// 								collapsed={collapsed}
-// 							/>
-// 						))}
-// 					</div>
-// 				</ScrollArea>
-// 			</div>
-
-// 			{/* User Profile */}
-// 			<div className="p-4 border-t border-gray-200 dark:border-gray-800">
-// 				<div
-// 					className={`flex items-center gap-3 ${
-// 						collapsed ? "justify-center" : ""
-// 					}`}
-// 				>
-// 					<div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
-// 						<User className="h-4 w-4 text-white" />
-// 					</div>
-// 					{!collapsed && (
-// 						<div className="flex-1 min-w-0">
-// 							<p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-// 								{user.name}
-// 							</p>
-// 							<p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-// 								{user.email}
-// 							</p>
-// 						</div>
-// 					)}
-// 				</div>
-// 			</div>
-// 		</div>
-// 	);
-// }

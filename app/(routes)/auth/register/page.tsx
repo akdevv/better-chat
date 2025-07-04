@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { registerSchema } from "@/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { registerUser } from "@/server/actions/auth";
+import { registerUser } from "@/lib/services/auth";
 
 import { toast } from "sonner";
 import { FaGoogle } from "react-icons/fa";
@@ -55,7 +55,7 @@ export default function RegisterPage() {
 			});
 
 			if (signInResult?.error) {
-				router.push("/chat/new");
+				router.push("/chat");
 			} else {
 				setError(
 					"Account created but failed to sign in. Please try logging in."

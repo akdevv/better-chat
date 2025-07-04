@@ -15,7 +15,7 @@ export default function ChatLayout({
 				collapsed={sidebarCollapsed}
 				onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
 			/>
-			<main className="flex-1">{children}</main>
+			<main className="flex-1 overflow-hidden">{children}</main>
 		</div>
 	);
 }

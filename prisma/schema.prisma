@@ -76,6 +76,7 @@ model Message {
   role      Role     @default(USER)
   content   String
   createdAt DateTime @default(now())
+  model     String?
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
   @@index([chatId])

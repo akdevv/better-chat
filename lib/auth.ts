@@ -27,7 +27,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 				// check if password is correct
 				const passwordsMatch = await bcrypt.compare(
 					password,
-					user.password
+					user.password || ""
 				);
 				if (!passwordsMatch) return null;
 
@@ -35,6 +35,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 			},
 		}),
 	],
+	callbacks: {
+		async jwt({ token, user }) {
+			if (user) {
+				token.sub = user.id;
+			}
+			return token;
+		},
+		async session({ session, token }) {
+			if (token.sub) {
+				session.user.id = token.sub;
+			}
+			return session;
+		},
+	},
 	session: { strategy: "jwt" },
 	secret: process.env.NEXTAUTH_SECRET,
 });
