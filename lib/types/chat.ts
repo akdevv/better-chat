@@ -7,23 +7,6 @@ export type Chat = {
 	messages: Message[];
 };
 
-export type ChatSidebarItem = {
-	id: string;
-	title: string;
-	isStarred: boolean;
-	createdAt: Date;
-	updatedAt: Date;
-};
-
-export interface ChatsResponse {
-	chats: ChatSidebarItem[];
-	pagination: {
-		limit: number;
-		offset: number;
-		total: number;
-	};
-}
-
 export type Message = {
 	id: string;
 	chatId: string;

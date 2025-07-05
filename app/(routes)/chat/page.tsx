@@ -3,16 +3,18 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChatInput } from "@/components/chat/chat-input";
+import { AI_MODELS } from "@/lib/ai/models";
 
 export default function NewChatPage() {
 	const router = useRouter();
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [selectedModel, setSelectedModel] = useState("");
+	const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
 
 	const handleSendMessage = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!input.trim() || isLoading) return;
+
 		setIsLoading(true);
 
 		try {

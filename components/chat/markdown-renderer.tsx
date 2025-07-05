@@ -173,32 +173,22 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"code"> & {
 						inline?: boolean;
 					}) => {
-						const content = stripWhitespace(children);
-
-						if (
-							!content ||
-							(typeof content === "string" &&
-								content.trim() === "")
-						) {
-							return null;
-						}
-
 						if (inline) {
 							return (
 								<code
 									{...props}
 									className="bg-muted/40 text-foreground px-1.5 py-0.5 rounded text-xs font-mono"
 								>
-									{content}
+									{children}
 								</code>
 							);
 						}
 						return (
 							<code
 								{...props}
-								className="bg-muted text-foreground px-1.5 py-0.5 rounded-full text-xs font-mono"
+								className="text-foreground text-xs font-mono"
 							>
-								{content}
+								{children}
 							</code>
 						);
 					},

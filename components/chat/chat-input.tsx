@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import ModelSelector from "@/components/chat/model-selector";
 import { FaArrowUpLong } from "react-icons/fa6";
+import { Spinner } from "@/components/shared/spinner";
 
 interface ChatInputProps {
 	input: string;
@@ -106,12 +107,18 @@ export function ChatInput({
 									type="submit"
 									size="sm"
 									disabled={!input.trim() || isLoading}
-									className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer rounded-md sm:rounded-lg"
+									className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground cursor-pointer rounded-md sm:rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
 								>
-									<FaArrowUpLong className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-									<span className="sr-only">
-										Send message
-									</span>
+									{isLoading ? (
+										<Spinner size="sm" color="dark" />
+									) : (
+										<>
+											<FaArrowUpLong className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+											<span className="sr-only">
+												Send message
+											</span>
+										</>
+									)}
 								</Button>
 							</div>
 						</form>

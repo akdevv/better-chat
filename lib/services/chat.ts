@@ -3,6 +3,20 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { ChatSidebarItem } from "@/lib/types/chat";
 
+
+export const getChatById = async (chatId: string, userId: string) => {
+	try {
+		const chat = await db.chat.findUnique({
+			where: { id: chatId, userId },
+		});
+
+		return chat;
+	} catch (error) {
+		console.error("Error fetching chat by ID:", error);
+		return null;
+	}
+};
+
 export const getUserChats = async (
 	userId: string,
 	options: { limit?: number; offset?: number }
