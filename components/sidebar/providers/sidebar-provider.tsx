@@ -75,7 +75,13 @@ export const SidebarProvider = ({
 			// use cache if available and valid (only for initial load)
 			if (useCache && !loadMore && isCacheValid()) {
 				const cachedData = cache.current!;
-				setChats(cachedData.data);
+				// Sort cached data by updatedAt (most recent first)
+				const sortedCachedData = [...cachedData.data].sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+				setChats(sortedCachedData);
 				setTotal(cachedData.total);
 				setOffset(Math.min(cachedData.data.length, LIMIT));
 				setHasMore(cachedData.data.length < cachedData.total);
@@ -101,6 +107,14 @@ export const SidebarProvider = ({
 				} else {
 					newChats = data.chats;
 				}
+
+				// sort by updatedAt (most recent first)
+				newChats = newChats.sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+
 				setChats(newChats);
 
 				const newOffset = currentOffset + LIMIT;
@@ -144,17 +158,11 @@ export const SidebarProvider = ({
 				const updatedChats = prevChats.map((chat) =>
 					chat.id === updatedChat.id ? updatedChat : chat
 				);
-				return updatedChats.sort((a, b) => {
-					// starred chats first
-					if (a.isStarred !== b.isStarred) {
-						return a.isStarred ? -1 : 1;
-					}
-					// then sort by updatedAt (most recent first)
-					return (
+				return updatedChats.sort(
+					(a, b) =>
 						new Date(b.updatedAt).getTime() -
 						new Date(a.updatedAt).getTime()
-					);
-				});
+				);
 			});
 
 			// invalidate cache & bg refresh
@@ -300,7 +308,15 @@ export const SidebarProvider = ({
 	const addNewChat = useCallback(
 		(newChat: SidebarChat) => {
 			console.log("Adding new chat to sidebar:", newChat);
-			setChats((prevChats) => [newChat, ...prevChats]);
+			setChats((prevChats) => {
+				const updatedChats = [newChat, ...prevChats];
+				// Sort by updatedAt (most recent first)
+				return updatedChats.sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+			});
 			invalidateCache();
 		},
 		[invalidateCache]

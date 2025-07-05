@@ -1,7 +1,6 @@
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/prisma";
-import { callGroq } from "@/lib/ai/groq";
 import { NextRequest, NextResponse } from "next/server";
+import { generateAiResponse, getMessagesById } from "@/lib/services/message";
 
 // GET /api/chat/[chatId]/messages - Get all messages for a chat
 export async function GET(
@@ -18,23 +17,16 @@ export async function GET(
 		}
 
 		const { chatId } = await params;
+		const result = await getMessagesById(chatId, session.user.id);
 
-		const chat = await db.chat.findUnique({
-			where: {
-				id: chatId,
-				userId: session.user.id,
-			},
-			include: { messages: true },
-		});
-
-		if (!chat) {
+		if (!result.success) {
 			return NextResponse.json(
-				{ error: "Chat not found" },
-				{ status: 404 }
+				{ error: "Failed to fetch messages" },
+				{ status: 500 }
 			);
 		}
 
-		return NextResponse.json({ messages: chat.messages });
+		return NextResponse.json({ messages: result.messages });
 	} catch (error) {
 		console.error("Error fetching messages: ", error);
 		return NextResponse.json(
@@ -68,58 +60,21 @@ export async function POST(
 			);
 		}
 
-		const chat = await db.chat.findUnique({
-			where: {
-				id: chatId,
-				userId: session.user.id,
-			},
-			include: { messages: true },
-		});
+		const result = await generateAiResponse(
+			chatId,
+			session.user.id,
+			message,
+			model
+		);
 
-		if (!chat) {
+		if (!result.success) {
 			return NextResponse.json(
-				{ error: "Chat not found" },
-				{ status: 404 }
+				{ error: "Failed to generate AI response" },
+				{ status: 500 }
 			);
 		}
 
-		// if not initial message, create a new message
-		if (chat.messages.length > 1) {
-			await db.message.create({
-				data: {
-					chatId: chatId,
-					role: "USER",
-					content: message.trim(),
-					model: model,
-				},
-			});
-		}
-
-		const stream = await callGroq(message, model);
-
-		let completeResponse = "";
-		const transformStream = new TransformStream({
-			transform(chunk, controller) {
-				const text = new TextDecoder().decode(chunk);
-				completeResponse += text;
-				controller.enqueue(chunk);
-			},
-			flush() {
-				// save AI response to database
-				db.message
-					.create({
-						data: {
-							chatId,
-							role: "ASSISTANT",
-							content: completeResponse,
-							model: model,
-						},
-					})
-					.catch(console.error);
-			},
-		});
-
-		return new Response(stream.pipeThrough(transformStream), {
+		return new Response(result.stream, {
 			headers: {
 				"Content-Type": "text/plain; charset=utf-8",
 				"Transfer-Encoding": "chunked",
