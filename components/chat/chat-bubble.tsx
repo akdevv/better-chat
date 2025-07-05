@@ -5,8 +5,8 @@ import { Message } from "@/lib/types/chat";
 import { AI_MODELS } from "@/lib/ai/models";
 
 import { Button } from "@/components/ui/button";
-import { FiCopy, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { PiBrain } from "react-icons/pi";
+import { FiCopy, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { MarkdownRenderer } from "@/components/chat/markdown-renderer";
 
 interface ContentPart {
@@ -18,10 +18,12 @@ export function ChatBubble({
 	messages,
 	scrollAreaRef,
 	messagesEndRef,
+	isWaitingForResponse,
 }: {
 	messages: Message[];
 	scrollAreaRef: React.RefObject<HTMLDivElement | null>;
 	messagesEndRef: React.RefObject<HTMLDivElement | null>;
+	isWaitingForResponse?: boolean;
 }) {
 	const [copiedId, setCopiedId] = useState<string | null>(null);
 	const [expandedThinking, setExpandedThinking] = useState<{
@@ -213,6 +215,39 @@ export function ChatBubble({
 					</div>
 				);
 			})}
+
+			{/* Loading indicator when waiting for AI response */}
+			{isWaitingForResponse && (
+				<div className="flex justify-start mb-6">
+					<div className="flex items-center gap-3 px-4 py-3 bg-muted/20 rounded-xl border border-border/30">
+						<PiBrain className="h-4 w-4 text-muted-foreground animate-pulse" />
+						<div className="flex items-center gap-1">
+							<div
+								className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce"
+								style={{
+									animationDelay: "0ms",
+									animationDuration: "1.4s",
+								}}
+							></div>
+							<div
+								className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce"
+								style={{
+									animationDelay: "200ms",
+									animationDuration: "1.4s",
+								}}
+							></div>
+							<div
+								className="w-1.5 h-1.5 bg-muted-foreground/60 rounded-full animate-bounce"
+								style={{
+									animationDelay: "400ms",
+									animationDuration: "1.4s",
+								}}
+							></div>
+						</div>
+					</div>
+				</div>
+			)}
+
 			<div ref={messagesEndRef} />
 		</div>
 	);

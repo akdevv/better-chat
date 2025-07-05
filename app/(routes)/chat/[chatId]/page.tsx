@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import { Message } from "@/lib/types/chat";
 import { useState, useRef, useEffect } from "react";
 import { AI_MODELS } from "@/lib/ai/models";
+import { useModelCache } from "@/hooks/use-model-cache";
 
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
@@ -15,6 +16,8 @@ export default function ChatPage() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
 	const [messages, setMessages] = useState<Message[]>([]);
+	const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
+
 	const scrollAreaRef = useRef<HTMLDivElement>(null);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +40,7 @@ export default function ChatPage() {
 
 	const getAIResponse = async (message: string, model: string) => {
 		setIsLoading(true);
+		setIsWaitingForResponse(true);
 
 		// create placeholder ai message
 		const aiMessageId = `ai-${Date.now()}-${Math.random()
@@ -72,9 +76,16 @@ export default function ChatPage() {
 			}
 
 			let accumulatedResponse = "";
+			let isFirstChunk = true;
 			while (true) {
 				const { done, value } = await reader.read();
 				if (done) break;
+
+				// stop showing waiting indicators
+				if (isFirstChunk) {
+					setIsWaitingForResponse(false);
+					isFirstChunk = false;
+				}
 
 				const chunk = new TextDecoder().decode(value);
 				accumulatedResponse += chunk;
@@ -107,6 +118,7 @@ export default function ChatPage() {
 			);
 		} finally {
 			setIsLoading(false);
+			setIsWaitingForResponse(false);
 		}
 	};
 
@@ -164,18 +176,19 @@ export default function ChatPage() {
 					messages={messages}
 					scrollAreaRef={scrollAreaRef}
 					messagesEndRef={messagesEndRef}
+					isWaitingForResponse={isWaitingForResponse}
 				/>
 			</div>
 
 			<div className="sticky bottom-0 p-2 sm:p-3 bg-background">
-				<ChatInput
-					input={input}
-					setInput={setInput}
-					isLoading={isLoading}
-					selectedModel={selectedModel}
-					setSelectedModel={setSelectedModel}
-					onSendMessage={handleSendMessage}
-				/>
+					<ChatInput
+						input={input}
+						setInput={setInput}
+						isLoading={isLoading}
+						selectedModel={selectedModel}
+						setSelectedModel={setSelectedModel}
+						onSendMessage={handleSendMessage}
+					/>
 			</div>
 		</div>
 	);
