@@ -28,6 +28,9 @@ export type SidebarContextType = {
 	handleChatUpdate: (updatedChat: SidebarChat) => void;
 	handleChatRefresh: () => void;
 	loadMoreChats: () => void;
+	generateAiTitle: (chatId: string, userMessage: string) => Promise<void>;
+	addNewChat: (newChat: SidebarChat) => void;
+	invalidateCache: () => void;
 };
 
 export type SidebarUIContextType = {

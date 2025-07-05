@@ -51,14 +51,17 @@ export async function POST(req: NextRequest) {
 		}
 
 		const { model, initialMessage } = await req.json();
-		if (!model || !initialMessage) {
+		if (!initialMessage) {
 			return NextResponse.json(
-				{ error: "Model and initial message are required" },
+				{ error: "Initial message is required" },
 				{ status: 400 }
 			);
 		}
 
-		const chatId = await createChat(model, initialMessage);
+		const chatId = await createChat(
+			model || "deepseek-r1-distill-llama-70b",
+			initialMessage
+		);
 		return NextResponse.json(chatId, { status: 200 });
 	} catch (error) {
 		console.error("Error creating chat: ", error);

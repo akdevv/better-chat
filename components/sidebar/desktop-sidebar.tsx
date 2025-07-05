@@ -31,10 +31,10 @@ export function DesktopSidebar() {
 			</div>
 
 			{/* Chat list */}
-			<div className="flex-1 px-3">
+			<div className="flex-1 px-3 max-h-[calc(100vh-10rem)] overflow-y-auto">
 				{!collapsed && <ChatList />}
 			</div>
-			
+
 			{/* Footer */}
 			<div className="p-3 border-t border-border">
 				<SidebarFooter />

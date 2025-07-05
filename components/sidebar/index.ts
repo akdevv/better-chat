@@ -1,3 +1,4 @@
+import ChatSidebar from "@/components/sidebar/chat-sidebar";
 import { MobileSidebar } from "@/components/sidebar/mobile-sidebar";
 import { DesktopSidebar } from "@/components/sidebar/desktop-sidebar";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/components/sidebar/providers/sidebar-ui-provider";
 
 export {
+	ChatSidebar,
 	MobileSidebar,
 	DesktopSidebar,
 	useSidebar,

@@ -1,8 +1,7 @@
 import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/prisma";
-import { ChatSidebarItem } from "@/lib/types/chat";
-
+import { SidebarChat } from "@/lib/types/sidebar";
 
 export const getChatById = async (chatId: string, userId: string) => {
 	try {
@@ -34,7 +33,7 @@ export const getUserChats = async (
 			db.chat.count({ where: { userId } }),
 		]);
 
-		const formattedChats: ChatSidebarItem[] = chats.map((chat) => ({
+		const formattedChats: SidebarChat[] = chats.map((chat) => ({
 			id: chat.id,
 			title: chat.title,
 			isStarred: chat.isStarred,
