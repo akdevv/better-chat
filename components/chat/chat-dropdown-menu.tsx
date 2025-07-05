@@ -24,6 +24,7 @@ interface ChatDropdownMenuProps {
 	chat: ChatSidebarItem;
 	onChatUpdate: (updatedChat: ChatSidebarItem) => void;
 	onChatDelete: (chatId: string) => void;
+	onChatRefresh: () => void;
 	menuOpen: boolean;
 	setMenuOpen: (open: boolean) => void;
 }
@@ -32,6 +33,7 @@ export default function ChatDropdownMenu({
 	chat,
 	onChatUpdate,
 	onChatDelete,
+	onChatRefresh,
 	menuOpen,
 	setMenuOpen,
 }: ChatDropdownMenuProps) {
@@ -62,6 +64,8 @@ export default function ChatDropdownMenu({
 			if (window.location.pathname === `/chat/${chat.id}`) {
 				router.push("/chat");
 			}
+
+			onChatRefresh();
 		} catch (error) {
 			console.error("Error deleting chat: ", error);
 			toast.error("Failed to delete chat");
@@ -91,6 +95,8 @@ export default function ChatDropdownMenu({
 			onChatUpdate(updatedChat);
 			toast.success("Chat renamed successfully");
 			setRenameDialogOpen(false);
+
+			onChatRefresh();
 		} catch (error) {
 			console.error("Error renaming chat: ", error);
 			toast.error("Failed to rename chat");
@@ -118,6 +124,8 @@ export default function ChatDropdownMenu({
 			const updatedChat = await res.json();
 			onChatUpdate(updatedChat);
 			toast.success(`Chat ${chat.isStarred ? "unstarred" : "starred"}`);
+
+			onChatRefresh();
 		} catch (error) {
 			console.error("Error toggling star: ", error);
 			toast.error("Failed to toggle star");

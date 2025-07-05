@@ -100,7 +100,6 @@ export function ChatBubble({
 			className="p-4 max-w-3xl mx-auto w-full min-h-full space-y-6"
 		>
 			{messages.map((message) => {
-				console.log("message", message);
 				const isUserMessage = message.role === "USER";
 				const isThinkingExpanded =
 					expandedThinking[message.id] || false;

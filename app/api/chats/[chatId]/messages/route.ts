@@ -49,7 +49,6 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { chatId: string } }
 ) {
-	console.log("POST /api/chat/[chatId]/messages");
 	try {
 		const session = await auth();
 		if (!session?.user?.id) {
@@ -61,9 +60,6 @@ export async function POST(
 
 		const { chatId } = await params;
 		const { message, model } = await req.json();
-		console.log("message", message);
-		console.log("model", model);
-		console.log("chatId", chatId);
 
 		if (!message.trim()) {
 			return NextResponse.json(

@@ -83,14 +83,6 @@ export default function ChatPage() {
 				setMessages((prevMessages) => {
 					const updatedMessages = prevMessages.map((msg) => {
 						if (msg.id === aiMessageId) {
-							console.log(
-								"Updating AI message:",
-								msg.id,
-								"role:",
-								msg.role,
-								"content length:",
-								accumulatedResponse.length
-							);
 							return { ...msg, content: accumulatedResponse };
 						}
 						return msg;

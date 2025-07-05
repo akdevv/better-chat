@@ -3,32 +3,26 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { ChatSidebarItem } from "@/lib/types/chat";
 import { usePathname, useRouter } from "next/navigation";
+import { ChatSidebarItem, ChatsResponse } from "@/lib/types/chat";
 
 import { FiSidebar } from "react-icons/fi";
 import { Button } from "@/components/ui/button";
 import { FaRegMessage, FaPlus, FaXmark } from "react-icons/fa6";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
 import ChatDropdownMenu from "./chat-dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Spinner } from "@/components/shared/spinner";
 
-interface ChatsResponse {
-	chats: ChatSidebarItem[];
-	pagination: {
-		limit: number;
-		offset: number;
-		total: number;
-	};
-}
-
-const ChatPreview = ({
+const ChatItem = ({
 	chat,
-	onChatDelete,
+	handleChatUpdate,
+	handleChatDelete,
+	handleChatRefresh,
 }: {
 	chat: ChatSidebarItem;
-	onChatDelete: (updatedChat: ChatSidebarItem) => void;
+	handleChatUpdate: (chat: ChatSidebarItem) => void;
+	handleChatDelete: (chatId: string) => void;
+	handleChatRefresh: () => void;
 }) => {
 	const [menuOpen, setMenuOpen] = useState(false);
 
@@ -44,8 +38,9 @@ const ChatPreview = ({
 			</div>
 			<ChatDropdownMenu
 				chat={chat}
-				onChatUpdate={() => {}}
-				onChatDelete={() => onChatDelete(chat)}
+				onChatUpdate={handleChatUpdate}
+				onChatDelete={handleChatDelete}
+				onChatRefresh={handleChatRefresh}
 				menuOpen={menuOpen}
 				setMenuOpen={setMenuOpen}
 			/>
@@ -60,9 +55,6 @@ export default function ChatSidebar({
 	collapsed: boolean;
 	onToggle: () => void;
 }) {
-	const router = useRouter();
-	const pathname = usePathname();
-
 	const { data: session } = useSession();
 
 	const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,25 +66,6 @@ export default function ChatSidebar({
 	const [offset, setOffset] = useState(0);
 
 	const LIMIT = 50;
-
-	const handleChatDelete = (updatedChat: ChatSidebarItem) => {
-		setChats((prevChats) => {
-			const updatedChats = prevChats.map((chat) =>
-				chat.id === updatedChat.id ? updatedChat : chat
-			);
-			return updatedChats.sort((a, b) => {
-				// First, sort by starred status (starred chats first)
-				if (a.isStarred !== b.isStarred) {
-					return a.isStarred ? -1 : 1;
-				}
-				// Then sort by updatedAt (most recent first)
-				return (
-					new Date(b.updatedAt).getTime() -
-					new Date(a.updatedAt).getTime()
-				);
-			});
-		});
-	};
 
 	const fetchChats = async (loadMore: boolean = false) => {
 		const currentOffset = loadMore ? offset : 0;
@@ -129,6 +102,39 @@ export default function ChatSidebar({
 			loading(false);
 		}
 	};
+
+	const handleChatDelete = (chatId: string) => {
+		setChats((prevChats) => prevChats.filter((chat) => chat.id !== chatId));
+	};
+
+	const handleChatUpdate = (updatedChat: ChatSidebarItem) => {
+		setChats((prevChats) => {
+			const updatedChats = prevChats.map((chat) =>
+				chat.id === updatedChat.id ? updatedChat : chat
+			);
+			return updatedChats.sort((a, b) => {
+				// starred chats first
+				if (a.isStarred !== b.isStarred) {
+					return a.isStarred ? -1 : 1;
+				}
+				// then sort by updatedAt (most recent first)
+				return (
+					new Date(b.updatedAt).getTime() -
+					new Date(a.updatedAt).getTime()
+				);
+			});
+		});
+	};
+
+	const handleChatRefresh = () => {
+		setOffset(0);
+		setHasMore(true);
+		fetchChats(false);
+	};
+
+	// starred and regular chats
+	const starredChats = chats.filter((chat) => chat.isStarred);
+	const regularChats = chats.filter((chat) => !chat.isStarred);
 
 	useEffect(() => {
 		fetchChats();
@@ -256,49 +262,79 @@ export default function ChatSidebar({
 				{/* chat list */}
 				<div className="flex-1 px-3">
 					{(!collapsed || isMobile) && (
-						<div>
-							<h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider my-2">
-								Recent Chats
-							</h3>
-							<ScrollArea className="h-full">
-								<div className="space-y-0.5">
-									{isLoading && (
-										<div className="space-y-1">
-											{Array.from({ length: 5 }).map(
-												(_, index) => (
-													<Skeleton
-														key={index}
-														className="h-10 w-full animate-pulse"
-													/>
-												)
-											)}
-										</div>
+						<div className="mt-2 space-y-0.5">
+							{isLoading ? (
+								<Spinner />
+							) : (
+								<>
+									{starredChats.length > 0 && (
+										<>
+											<h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider my-2">
+												Starred Chats
+											</h3>
+											{starredChats.map((chat) => (
+												<ChatItem
+													key={chat.id}
+													chat={chat}
+													handleChatUpdate={
+														handleChatUpdate
+													}
+													handleChatDelete={
+														handleChatDelete
+													}
+													handleChatRefresh={
+														handleChatRefresh
+													}
+												/>
+											))}
+										</>
 									)}
-									{chats.map((chat) => (
-										<ChatPreview
-											key={chat.id}
-											chat={chat}
-											onChatDelete={handleChatDelete}
-										/>
-									))}
-								</div>
 
-								{!isLoading && hasMore && (
-									<div className="flex justify-center mt-3">
-										<Button
-											variant="secondary"
-											className="cursor-pointer"
-											onClick={() => {
-												fetchChats();
-											}}
-										>
-											{isLoadingMore
-												? "Loading..."
-												: "Load More"}
-										</Button>
-									</div>
-								)}
-							</ScrollArea>
+									{regularChats.length > 0 && (
+										<>
+											<h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider my-2">
+												Recent Chats
+											</h3>
+											{regularChats.map((chat) => (
+												<ChatItem
+													key={chat.id}
+													chat={chat}
+													handleChatUpdate={
+														handleChatUpdate
+													}
+													handleChatDelete={
+														handleChatDelete
+													}
+													handleChatRefresh={
+														handleChatRefresh
+													}
+												/>
+											))}
+										</>
+									)}
+								</>
+							)}
+
+							{/* load more button */}
+							{!isLoading && !isLoadingMore && hasMore && (
+								<div className="flex justify-center mt-3">
+									<Button
+										variant="outline"
+										size="sm"
+										className="cursor-pointer rounded-full text-muted-foreground border-muted-foreground/20 hover:bg-muted/50 px-4 py-1 h-7 text-xs"
+										onClick={() => {
+											fetchChats(true);
+										}}
+									>
+										{isLoadingMore
+											? "Loading..."
+											: "Load More"}
+									</Button>
+								</div>
+							)}
+
+							{/* loading more indicator */}
+							{isLoadingMore && <Spinner />}
 						</div>
 					)}
 				</div>
@@ -312,7 +348,12 @@ export default function ChatSidebar({
 					>
 						<Avatar>
 							<AvatarImage src={session?.user?.image || ""} />
-							<AvatarFallback>CN</AvatarFallback>
+							<AvatarFallback>
+								{session?.user?.name
+									?.split(" ")
+									.map((n) => n[0])
+									.join("")}
+							</AvatarFallback>
 						</Avatar>
 						{(!collapsed || isMobile) && (
 							<div className="flex-1 min-w-0">

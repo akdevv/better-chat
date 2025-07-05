@@ -27,14 +27,11 @@ export default function NewChatPage() {
 				}),
 			});
 
-			console.log("Response:", res);
-
 			if (!res.ok) {
 				throw new Error("Failed to create new chat");
 			}
 
 			const { chatId } = await res.json();
-			console.log("Chat ID:", chatId);
 			router.push(`/chat/${chatId}`);
 		} catch (error) {
 			console.error("Error creating chat: ", error);
