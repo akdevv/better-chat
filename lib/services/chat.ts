@@ -53,6 +53,9 @@ export const getUserChats = async (
 
 export const createChat = async (model: string, initialMessage: string) => {
 	try {
+		console.log("Creating chat with model:", model);
+		console.log("Creating chat with initial message:", initialMessage);
+
 		const session = await auth();
 		if (!session?.user?.id) {
 			return { error: "Unauthorized" };

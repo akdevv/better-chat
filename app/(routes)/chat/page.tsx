@@ -3,27 +3,38 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChatInput } from "@/components/chat/chat-input";
-import { AI_MODELS } from "@/lib/ai/models";
-import { useChatCreation } from "@/hooks/use-chat-creation";
 
 export default function NewChatPage() {
 	const router = useRouter();
-	const { createNewChat, handleGenerateAiTitle } = useChatCreation();
-
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
-	const [selectedModel, setSelectedModel] = useState(AI_MODELS[0].id);
+	const [selectedModel, setSelectedModel] = useState("");
 
 	const handleSendMessage = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!input.trim() || isLoading) return;
-
 		setIsLoading(true);
 
 		try {
-			const chatId = await createNewChat(selectedModel, input.trim());
-			console.log("chatId", chatId);
-			handleGenerateAiTitle(chatId, input.trim());
+			const res = await fetch("/api/chats", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					model: selectedModel,
+					initialMessage: input.trim(),
+				}),
+			});
+
+			console.log("Response:", res);
+
+			if (!res.ok) {
+				throw new Error("Failed to create new chat");
+			}
+
+			const { chatId } = await res.json();
+			console.log("Chat ID:", chatId);
 			router.push(`/chat/${chatId}`);
 		} catch (error) {
 			console.error("Error creating chat: ", error);
