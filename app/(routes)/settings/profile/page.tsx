@@ -10,7 +10,7 @@ export default async function ProfilePage() {
 	}
 
 	return (
-		<div>
+		<div className="flex-1 flex-col gap-4 p-6">
 			<h1>Profile</h1>
 			<p>{session.user.email}</p>
 		</div>
