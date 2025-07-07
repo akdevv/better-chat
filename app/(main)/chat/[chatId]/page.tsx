@@ -1,19 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
 import { useChatContext } from "@/contexts/chat-context";
-
 import { ChatBubble } from "@/components/chat/chat-bubble";
 import { ChatInput } from "@/components/chat/chat-input";
 import { MdOutlineIosShare } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
-	const { chatState, fetchMessages, handleSendMessage } = useChatContext();
-
-	useEffect(() => {
-		fetchMessages();
-	}, [fetchMessages]);
+	const { chatState, handleSendMessage } = useChatContext();
 
 	return (
 		<div className="flex flex-col h-full">

@@ -14,7 +14,6 @@ interface ChatContextValue {
 	// Actions
 	setInput: (input: string) => void;
 	setSelectedModel: (model: string) => void;
-	fetchMessages: () => void;
 	handleCreateChat: (e: React.FormEvent) => void;
 	handleSendMessage: (e: React.FormEvent) => void;
 
