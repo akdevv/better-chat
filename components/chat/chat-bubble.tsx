@@ -16,13 +16,13 @@ interface ContentPart {
 
 export function ChatBubble({
 	messages,
-	scrollAreaRef,
-	messagesEndRef,
+	// scrollAreaRef,
+	// messagesEndRef,
 	isWaitingForResponse,
 }: {
 	messages: Message[];
-	scrollAreaRef: React.RefObject<HTMLDivElement | null>;
-	messagesEndRef: React.RefObject<HTMLDivElement | null>;
+	// scrollAreaRef: React.RefObject<HTMLDivElement | null>;
+	// messagesEndRef: React.RefObject<HTMLDivElement | null>;
 	isWaitingForResponse?: boolean;
 }) {
 	const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export function ChatBubble({
 
 	return (
 		<div
-			ref={scrollAreaRef}
+			// ref={scrollAreaRef}
 			className="p-4 max-w-3xl mx-auto w-full min-h-full space-y-6"
 		>
 			{messages.map((message) => {
@@ -248,7 +248,7 @@ export function ChatBubble({
 				</div>
 			)}
 
-			<div ref={messagesEndRef} />
+			{/* <div ref={messagesEndRef} /> */}
 		</div>
 	);
 }

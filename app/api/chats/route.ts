@@ -1,12 +1,28 @@
-import { auth } from "@/lib/auth";
+import { z } from "zod";
+import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { NextRequest, NextResponse } from "next/server";
-import { createChat, getUserChats } from "@/lib/services/chat";
+import {
+	authenticateUser,
+	getUserChats,
+	createChat,
+} from "@/lib/services/chat";
 
-// GET /api/chats - Get all user's chats
+// Validation schemas
+const paginationSchema = z.object({
+	limit: z.coerce.number().min(1).max(100).default(50),
+	offset: z.coerce.number().min(0).default(0),
+});
+
+const createChatSchema = z.object({
+	model: z.string().optional(),
+	initialMessage: z.string().min(1).trim(),
+});
+
+// GET /api/chats - Get all chats
 export async function GET(req: NextRequest) {
 	try {
-		const session = await auth();
-		if (!session?.user?.id) {
+		const { userId } = await authenticateUser();
+		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
 				{ status: 401 }
@@ -14,24 +30,31 @@ export async function GET(req: NextRequest) {
 		}
 
 		const { searchParams } = new URL(req.url);
-		const limit = parseInt(searchParams.get("limit") || "50");
-		const offset = parseInt(searchParams.get("offset") || "0");
-
-		const userChats = await getUserChats(session.user.id, {
-			limit,
-			offset,
+		const params = paginationSchema.parse({
+			limit: searchParams.get("limit") ?? 50,
+			offset: searchParams.get("offset") ?? 0,
 		});
 
+		const result = await getUserChats(userId, params);
+
 		return NextResponse.json({
-			chats: userChats.chats,
+			chats: result.chats,
 			pagination: {
-				limit: limit,
-				offset: offset,
-				total: userChats.total,
+				limit: params.limit,
+				offset: params.offset,
+				total: result.total,
+				hasMore: params.offset + result.chats.length < result.total,
 			},
 		});
 	} catch (error) {
-		console.error("Error fetching chats: ", error);
+		if (error instanceof z.ZodError) {
+			return NextResponse.json(
+				{ error: "Invalid parameters", details: error.errors },
+				{ status: 400 }
+			);
+		}
+
+		console.error("Error fetching chats:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch chats" },
 			{ status: 500 }
@@ -42,29 +65,33 @@ export async function GET(req: NextRequest) {
 // POST /api/chats - Create a new chat
 export async function POST(req: NextRequest) {
 	try {
-		const session = await auth();
-		if (!session?.user?.id) {
+		const { userId } = await authenticateUser();
+		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
 				{ status: 401 }
 			);
 		}
 
-		const { model, initialMessage } = await req.json();
-		if (!initialMessage) {
+		const { model, initialMessage } = createChatSchema.parse(
+			await req.json()
+		);
+
+		const chatId = await createChat(userId, {
+			model: model ?? DEFAULT_MODEL,
+			initialMessage,
+		});
+
+		return NextResponse.json(chatId, { status: 200 });
+	} catch (error) {
+		if (error instanceof z.ZodError) {
 			return NextResponse.json(
-				{ error: "Initial message is required" },
+				{ error: "Invalid request body", details: error.errors },
 				{ status: 400 }
 			);
 		}
 
-		const chatId = await createChat(
-			model || "deepseek-r1-distill-llama-70b",
-			initialMessage
-		);
-		return NextResponse.json(chatId, { status: 200 });
-	} catch (error) {
-		console.error("Error creating chat: ", error);
+		console.error("Error creating chat:", error);
 		return NextResponse.json(
 			{ error: "Failed to create chat" },
 			{ status: 500 }

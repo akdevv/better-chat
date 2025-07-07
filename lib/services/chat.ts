@@ -1,27 +1,25 @@
 import { nanoid } from "nanoid";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/prisma";
+import { Chat } from "@/lib/types/chat";
 import { SidebarChat } from "@/lib/types/sidebar";
 
-export const getChatById = async (chatId: string, userId: string) => {
-	try {
-		const chat = await db.chat.findUnique({
-			where: { id: chatId, userId },
-		});
-
-		return chat;
-	} catch (error) {
-		console.error("Error fetching chat by ID:", error);
-		return null;
-	}
+const formatChat = (chat: Chat): SidebarChat => {
+	return {
+		id: chat.id,
+		title: chat.title,
+		isStarred: chat.isStarred,
+		createdAt: chat.createdAt,
+		updatedAt: chat.updatedAt,
+	};
 };
 
 export const getUserChats = async (
 	userId: string,
-	options: { limit?: number; offset?: number }
+	params: { limit: number; offset: number }
 ) => {
 	try {
-		const { limit = 50, offset = 0 } = options;
+		const { limit, offset } = params;
 
 		const [chats, total] = await Promise.all([
 			db.chat.findMany({
@@ -33,34 +31,22 @@ export const getUserChats = async (
 			db.chat.count({ where: { userId } }),
 		]);
 
-		const formattedChats: SidebarChat[] = chats.map((chat) => ({
-			id: chat.id,
-			title: chat.title,
-			isStarred: chat.isStarred,
-			createdAt: chat.createdAt,
-			updatedAt: chat.updatedAt,
-		}));
+		const formattedChats: SidebarChat[] = chats.map((chat) =>
+			formatChat(chat)
+		);
 
-		return {
-			chats: formattedChats,
-			total,
-		};
+		return { chats: formattedChats, total };
 	} catch (error) {
-		console.error("Error fetching chats: ", error);
-		return { error: "Error fetching chats" };
+		console.error("Error fetching chats:", error);
+		throw error;
 	}
 };
 
-export const createChat = async (model: string, initialMessage: string) => {
+export const createChat = async (
+	userId: string,
+	{ model, initialMessage }: { model: string; initialMessage: string }
+) => {
 	try {
-		console.log("Creating chat with model:", model);
-		console.log("Creating chat with initial message:", initialMessage);
-
-		const session = await auth();
-		if (!session?.user?.id) {
-			return { error: "Unauthorized" };
-		}
-
 		let chatId: string;
 		let attempts = 0;
 		const maxAttempts = 5;
@@ -85,7 +71,7 @@ export const createChat = async (model: string, initialMessage: string) => {
 			const chat = await tx.chat.create({
 				data: {
 					id: chatId,
-					userId: session.user?.id as string,
+					userId,
 					title: "Untitled Chat",
 				},
 			});
@@ -109,27 +95,7 @@ export const createChat = async (model: string, initialMessage: string) => {
 		return { chatId: result.chat.id };
 	} catch (error) {
 		console.error("Error creating chat:", error);
-		return { error: "Error creating chat" };
-	}
-};
-
-export const deleteChat = async (chatId: string, userId: string) => {
-	try {
-		const chat = await db.chat.findUnique({
-			where: { id: chatId, userId },
-		});
-		if (!chat) {
-			return { error: "Chat not found or unauthorized" };
-		}
-
-		await db.chat.delete({
-			where: { id: chatId },
-		});
-
-		return { success: true };
-	} catch (error) {
-		console.error("Error deleting chat:", error);
-		return { error: "Error deleting chat" };
+		return { error: "Failed to create chat" };
 	}
 };
 
@@ -158,19 +124,11 @@ export const renameChat = async (
 		const updatedChat = await db.chat.update({
 			where: { id: chatId },
 			data: { title: title.trim() },
-			select: {
-				id: true,
-				title: true,
-				isStarred: true,
-				createdAt: true,
-				updatedAt: true,
-			},
 		});
-
-		return { success: true, chat: updatedChat };
+		return { success: true, chat: formatChat(updatedChat) };
 	} catch (error) {
 		console.error("Error renaming chat:", error);
-		return { error: "Error renaming chat" };
+		return { error: "Failed to rename chat" };
 	}
 };
 
@@ -187,18 +145,40 @@ export const toggleStar = async (chatId: string, userId: string) => {
 		const updatedChat = await db.chat.update({
 			where: { id: chatId },
 			data: { isStarred: !chat.isStarred, updatedAt: new Date() },
-			select: {
-				id: true,
-				title: true,
-				isStarred: true,
-				createdAt: true,
-				updatedAt: true,
-			},
 		});
 
-		return { success: true, chat: updatedChat };
+		return { success: true, chat: formatChat(updatedChat) };
 	} catch (error) {
 		console.error("Error toggling star:", error);
 		return { error: "Error toggling star" };
 	}
 };
+
+export const deleteChat = async (chatId: string, userId: string) => {
+	try {
+		const chat = await db.chat.findUnique({
+			where: { id: chatId, userId },
+		});
+		if (!chat) {
+			return { error: "Chat not found or unauthorized" };
+		}
+
+		await db.chat.delete({
+			where: { id: chatId },
+		});
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error deleting chat:", error);
+		return { error: "Error deleting chat" };
+	}
+};
+
+// Helper functions
+export async function authenticateUser() {
+	const session = await auth();
+	if (!session?.user?.id) {
+		return { error: "Unauthorized", userId: null };
+	}
+	return { error: null, userId: session.user.id };
+}

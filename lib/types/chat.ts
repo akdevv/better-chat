@@ -2,9 +2,10 @@ export type Chat = {
 	id: string;
 	userId: string;
 	title: string;
+	isStarred: boolean;
 	createdAt: Date;
 	updatedAt: Date;
-	messages: Message[];
+	messages?: Message[];
 };
 
 export type Message = {
@@ -15,3 +16,10 @@ export type Message = {
 	createdAt: Date;
 	model: string;
 };
+
+export interface ChatState {
+	messages: Message[];
+	isChatLoading: boolean;
+	isStreamingResponse: boolean;
+	error: string | null;
+}
