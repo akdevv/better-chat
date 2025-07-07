@@ -7,7 +7,11 @@ export const getMessages = async (chatId: string, userId: string) => {
 		const chat = await db.chat.findUnique({
 			where: { id: chatId, userId },
 			include: {
-				messages: true,
+				messages: {
+					orderBy: {
+						createdAt: "asc",
+					},
+				},
 			},
 		});
 		if (!chat) {
