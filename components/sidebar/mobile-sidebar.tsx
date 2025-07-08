@@ -1,61 +1,34 @@
 "use client";
 
-import { useEffect } from "react";
-import {
-	SidebarHeader,
-	SidebarToggle,
-	NewChatButton,
-	SidebarFooter,
-	ChatList,
-} from "@/components/sidebar/sidebar-content";
-import { useSidebarUI } from "@/components/sidebar";
+import { useSidebar } from "@/contexts/sidebar-context";
+import { Button } from "@/components/ui/button";
+import { GoSidebarCollapse } from "react-icons/go";
+import { SidebarContent } from "./sidebar-content";
+import { FaRegMessage, FaXmark } from "react-icons/fa6";
 
 export function MobileSidebar() {
-	const { isMobileMenuOpen, closeMobileMenu } = useSidebarUI();
+	const { isMobileMenuOpen, toggleSidebar } = useSidebar();
 
-	// close mobile menu when clicking outside
-	useEffect(() => {
-		if (!isMobileMenuOpen) return;
-
-		const handleClickOutside = (event: MouseEvent) => {
-			const target = event.target as Element;
-			if (
-				!target.closest("[data-sidebar]") &&
-				!target.closest("[data-sidebar-trigger]")
-			) {
-				closeMobileMenu();
-			}
-		};
-
-		document.addEventListener("mousedown", handleClickOutside);
-		return () =>
-			document.removeEventListener("mousedown", handleClickOutside);
-	}, [isMobileMenuOpen, closeMobileMenu]);
-
-	// Prevent body scroll when mobile menu is open
-	useEffect(() => {
-		if (isMobileMenuOpen) {
-			document.body.style.overflow = "hidden";
-		} else {
-			document.body.style.overflow = "";
-		}
-
-		return () => {
-			document.body.style.overflow = "";
-		};
-	}, [isMobileMenuOpen]);
-
-	// Mobile menu trigger (only visible on mobile)
 	if (!isMobileMenuOpen) {
-		return <SidebarToggle />;
+		return (
+			<Button
+				variant="ghost"
+				size="icon"
+				onClick={toggleSidebar}
+				className="fixed top-4 left-4 z-50 h-10 w-10 bg-card/80 backdrop-blur-sm border border-border/50 hover:bg-card cursor-pointer"
+				data-sidebar-trigger
+			>
+				<GoSidebarCollapse className="h-5 w-5" />
+			</Button>
+		);
 	}
 
 	return (
 		<>
-			{/* Mobile overlay background */}
+			{/* Mobile Overlay */}
 			<div
 				className="fixed inset-0 bg-black/80 backdrop-blur-md z-40 md:hidden animate-in fade-in duration-300"
-				onClick={closeMobileMenu}
+				onClick={toggleSidebar}
 			/>
 
 			{/* Mobile Sidebar */}
@@ -65,24 +38,24 @@ export function MobileSidebar() {
 			>
 				{/* Header */}
 				<div className="flex items-center justify-between p-3 border-b border-border">
-					<SidebarHeader />
-					<SidebarToggle />
+					<div className="flex items-center gap-2">
+						<FaRegMessage className="h-4 w-4 text-primary" />
+						<span className="font-bold text-primary">
+							BetterChat
+						</span>
+					</div>
+					<Button
+						variant="ghost"
+						size="icon"
+						onClick={toggleSidebar}
+						className="h-8 w-8 p-0 cursor-pointer"
+					>
+						<FaXmark className="h-4 w-4" />
+					</Button>
 				</div>
 
-				{/* New chat button */}
-				<div className="p-3">
-					<NewChatButton />
-				</div>
-
-				{/* Chat list */}
-				<div className="flex-1 px-3">
-					<ChatList />
-				</div>
-
-				{/* Footer */}
-				<div className="p-3 border-t border-border">
-					<SidebarFooter />
-				</div>
+				{/* Sidebar Content */}
+				<SidebarContent />
 			</div>
 		</>
 	);

@@ -1,16 +1,11 @@
 "use client";
 
-import {
-	MobileSidebar,
-	DesktopSidebar,
-	useSidebarUI,
-} from "@/components/sidebar";
+import { DesktopSidebar } from "./desktop-sidebar";
+import { MobileSidebar } from "./mobile-sidebar";
+import { useSidebar } from "@/contexts/sidebar-context";
 
-const ChatSidebarContent = () => {
-	const { isMobile } = useSidebarUI();
+export function ChatSidebar() {
+	const { isMobile } = useSidebar();
+
 	return isMobile ? <MobileSidebar /> : <DesktopSidebar />;
-};
-
-export default function ChatSidebar() {
-	return <ChatSidebarContent />;
 }

@@ -11,7 +11,6 @@ export function ChatItem({ chat }: { chat: SidebarChat }) {
 	const [menuOpen, setMenuOpen] = useState(false);
 
 	const isActive = pathname === `/chat/${chat.id}`;
-	const isGeneratingTitle = chat.title === "Untitled Chat";
 
 	return (
 		<Link
@@ -22,29 +21,14 @@ export function ChatItem({ chat }: { chat: SidebarChat }) {
 		>
 			<div className="flex-1 min-w-0">
 				<p className="text-sm font-medium font-accent-foreground truncate">
-					{isGeneratingTitle ? "Generating..." : chat.title}
+					{chat.title}
 				</p>
-				{/* {isGeneratingTitle && (
-					<div className="flex items-center space-x-1">
-						<div className="w-1 h-1 bg-current rounded-full animate-bounce"></div>
-						<div
-							className="w-1 h-1 bg-current rounded-full animate-bounce"
-							style={{ animationDelay: "0.1s" }}
-						></div>
-						<div
-							className="w-1 h-1 bg-current rounded-full animate-bounce"
-							style={{ animationDelay: "0.2s" }}
-						></div>
-					</div>
-				)} */}
 			</div>
-			{!isGeneratingTitle && (
-				<ChatDropdown
-					chat={chat}
-					isOpen={menuOpen}
-					onOpenChange={setMenuOpen}
-				/>
-			)}
+			<ChatDropdown
+				chat={chat}
+				isOpen={menuOpen}
+				onOpenChange={setMenuOpen}
+			/>
 		</Link>
 	);
 }

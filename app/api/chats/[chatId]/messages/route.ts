@@ -1,34 +1,30 @@
-import { auth } from "@/lib/auth";
+import {
+	authenticateUser,
+	getMessages,
+	sendMessage,
+} from "@/lib/services/message";
 import { NextRequest, NextResponse } from "next/server";
-import { generateAiResponse, getMessagesById } from "@/lib/services/message";
 
-// GET /api/chat/[chatId]/messages - Get all messages for a chat
+// GET /chats/:chatId/messages => get all messages for a chat
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { chatId: string } }
 ) {
 	try {
-		const session = await auth();
-		if (!session?.user?.id) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+		const { error, userId } = await authenticateUser();
+		if (error) {
+			return NextResponse.json({ error }, { status: 401 });
 		}
 
 		const { chatId } = await params;
-		const result = await getMessagesById(chatId, session.user.id);
-
-		if (!result.success) {
-			return NextResponse.json(
-				{ error: "Failed to fetch messages" },
-				{ status: 500 }
-			);
+		const result = await getMessages(chatId, userId!);
+		if (result.error) {
+			return NextResponse.json({ error: result.error }, { status: 404 });
 		}
 
-		return NextResponse.json({ messages: result.messages });
+		return NextResponse.json(result.messages);
 	} catch (error) {
-		console.error("Error fetching messages: ", error);
+		console.error("Error fetching messages:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch messages" },
 			{ status: 500 }
@@ -36,47 +32,43 @@ export async function GET(
 	}
 }
 
-// POST /api/chat/[chatId]/messages - Send message and get AI response
+// POST /api/chats/:chatId/messages - Send message & get AI response
 export async function POST(
 	req: NextRequest,
 	{ params }: { params: { chatId: string } }
 ) {
-	console.log("Received request to send message");
-
 	try {
-		const session = await auth();
-		if (!session?.user?.id) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+		const { error, userId } = await authenticateUser();
+		if (error) {
+			return NextResponse.json({ error }, { status: 401 });
 		}
 
 		const { chatId } = await params;
-		const { message, model } = await req.json();
-		console.log("chatId:", chatId);
-		console.log("message:", message);
-		console.log("model:", model);
 
-		if (!message.trim()) {
+		const { message, model } = await req.json();
+		if (!message.trim() || !model) {
 			return NextResponse.json(
-				{ error: "Message is required" },
+				{ error: "Message and model are required" },
 				{ status: 400 }
 			);
 		}
 
-		const result = await generateAiResponse(
-			chatId,
-			session.user.id,
-			message,
-			model
-		);
+		const abortController = new AbortController();
+		if (req.signal) {
+			req.signal.addEventListener("abort", () => {
+				abortController.abort();
+			});
+		}
 
-		if (!result.success) {
-			return NextResponse.json(
-				{ error: "Failed to generate AI response" },
-				{ status: 500 }
-			);
+		const result = await sendMessage(
+			chatId,
+			userId!,
+			message,
+			model,
+			abortController.signal
+		);
+		if (result.error) {
+			return NextResponse.json({ error: result.error }, { status: 500 });
 		}
 
 		return new Response(result.stream, {
@@ -86,7 +78,7 @@ export async function POST(
 			},
 		});
 	} catch (error) {
-		console.error("Error sending message: ", error);
+		console.error("Error sending message:", error);
 		return NextResponse.json(
 			{ error: "Failed to send message" },
 			{ status: 500 }
