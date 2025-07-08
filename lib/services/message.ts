@@ -48,7 +48,7 @@ export const sendMessage = async (
 		}
 
 		// if not the first message, create new message
-		const existingMessage = db.message.findFirst({
+		const existingMessage = await db.message.findFirst({
 			where: { chatId, role: "USER", content: message.trim() },
 			orderBy: { createdAt: "desc" },
 		});
