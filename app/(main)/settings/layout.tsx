@@ -11,10 +11,12 @@ export default function SettingsLayout({
 		<SettingsProvider>
 			<div className="flex flex-col h-screen w-screen">
 				<Header />
-				<div className="flex flex-1 overflow-hidden w-full max-w-7xl mx-auto">
-					<Sidebar />
-					<div className="flex flex-col w-full p-4 max-w-4xl mx-auto">
-						{children}
+				<div className="overflow-y-scroll">
+					<div className="flex w-full max-w-7xl mx-auto">
+						<Sidebar />
+						<div className="flex flex-col w-full p-4 max-w-4xl mx-auto">
+							{children}
+						</div>
 					</div>
 				</div>
 			</div>

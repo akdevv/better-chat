@@ -1,4 +1,4 @@
-export type ModelProvider = "groq" | "openai" | "anthropic";
+export type ModelProvider = "groq" | "openai" | "google" | "anthropic";
 
 export interface AIModel {
 	id: string;
@@ -6,8 +6,6 @@ export interface AIModel {
 	provider: ModelProvider;
 	isFree: boolean;
 	isNew?: boolean;
-	isPowerful?: boolean;
-	description?: string;
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -17,22 +15,12 @@ export const AI_MODELS: AIModel[] = [
 		name: "DeepSeek R1",
 		provider: "groq",
 		isFree: true,
-		isPowerful: true,
-		description: "Advanced reasoning model",
-	},
-	{
-		id: "gemma2-9b-it",
-		name: "Gemma 2",
-		provider: "groq",
-		isFree: true,
-		description: "Google's efficient model",
 	},
 	{
 		id: "qwen/qwen3-32b",
 		name: "Qwen 3",
 		provider: "groq",
 		isFree: true,
-		description: "Alibaba's multilingual model",
 	},
 	{
 		id: "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -40,7 +28,6 @@ export const AI_MODELS: AIModel[] = [
 		provider: "groq",
 		isFree: true,
 		isNew: true,
-		description: "Meta's latest model",
 	},
 
 	// Anthropic models (Paid)
@@ -49,15 +36,20 @@ export const AI_MODELS: AIModel[] = [
 		name: "Claude Opus 4",
 		provider: "anthropic",
 		isFree: false,
-		isPowerful: true,
-		description: "Most capable Claude model",
 	},
 	{
 		id: "claude-sonnet-4-20250514",
 		name: "Claude Sonnet 4",
 		provider: "anthropic",
 		isFree: false,
-		description: "Balanced Claude model",
+	},
+
+	// Google models (Paid)
+	{
+		id: "gemma2-9b-it",
+		name: "Gemma 2",
+		provider: "google",
+		isFree: false,
 	},
 
 	// OpenAI models (Paid)
@@ -67,22 +59,18 @@ export const AI_MODELS: AIModel[] = [
 		provider: "openai",
 		isFree: false,
 		isNew: true,
-		isPowerful: true,
-		description: "OpenAI's most advanced model",
 	},
 	{
 		id: "o4-mini",
 		name: "O4 Mini",
 		provider: "openai",
 		isFree: false,
-		description: "Cost-effective reasoning",
 	},
 	{
 		id: "o4-mini-high",
 		name: "O4 Mini High",
 		provider: "openai",
 		isFree: false,
-		description: "Enhanced O4 Mini",
 	},
 ];
 
@@ -102,4 +90,3 @@ export function groupModelsByProvider(): Record<ModelProvider, AIModel[]> {
 		return acc;
 	}, {} as Record<ModelProvider, AIModel[]>);
 }
-

@@ -1,4 +1,5 @@
-import { auth } from "@/lib/auth";
+import "server-only";
+
 import { db } from "@/lib/prisma";
 import { callGroq } from "@/lib/ai/callGroq";
 
@@ -115,12 +116,3 @@ export const sendMessage = async (
 		return { error: "Failed to send message" };
 	}
 };
-
-// Helper functions
-export async function authenticateUser() {
-	const session = await auth();
-	if (!session?.user?.id) {
-		return { error: "Unauthorized", userId: null };
-	}
-	return { error: null, userId: session.user.id };
-}

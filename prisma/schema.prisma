@@ -45,6 +45,7 @@ model User {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   accounts      Account[]
+  apiKeys       ApiKey[]
   chats         Chat[]
   sessions      Session[]
   userSettings  UserSettings?
@@ -62,13 +63,13 @@ model Chat {
   id        String    @id @default(cuid())
   userId    String
   title     String    @default("Untitled Chat")
-  isStarred Boolean   @default(false)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  isStarred Boolean   @default(false)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
 
- @@index([userId])
+  @@index([userId])
   @@index([userId, isStarred])
   @@index([userId, createdAt])
 }
@@ -88,9 +89,29 @@ model Message {
 model UserSettings {
   id          String @id @default(cuid())
   userId      String @unique
-  apiKeys     Json?
   preferences Json?
   user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id            String    @id @default(cuid())
+  provider      Provider
+  encryptedKey  String
+  isValidated   Boolean   @default(false)
+  lastValidated DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, provider])
+  @@index([userId])
+}
+
+enum Provider {
+  openai
+  google
+  anthropic
 }
 
 enum Role {

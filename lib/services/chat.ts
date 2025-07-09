@@ -1,5 +1,4 @@
 import { nanoid } from "nanoid";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/prisma";
 import { Chat } from "@/lib/types/chat";
 import { SidebarChat } from "@/lib/types/sidebar";
@@ -173,12 +172,3 @@ export const deleteChat = async (chatId: string, userId: string) => {
 		return { error: "Error deleting chat" };
 	}
 };
-
-// Helper functions
-export async function authenticateUser() {
-	const session = await auth();
-	if (!session?.user?.id) {
-		return { error: "Unauthorized", userId: null };
-	}
-	return { error: null, userId: session.user.id };
-}

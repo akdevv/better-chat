@@ -1,9 +1,6 @@
-import {
-	authenticateUser,
-	getMessages,
-	sendMessage,
-} from "@/lib/services/message";
 import { NextRequest, NextResponse } from "next/server";
+import { getMessages, sendMessage } from "@/lib/services/message";
+import { authenticateUser } from "@/lib/services/auth";
 
 // GET /chats/:chatId/messages => get all messages for a chat
 export async function GET(

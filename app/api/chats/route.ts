@@ -1,11 +1,8 @@
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/ai/models";
 import { NextRequest, NextResponse } from "next/server";
-import {
-	authenticateUser,
-	getUserChats,
-	createChat,
-} from "@/lib/services/chat";
+import { getUserChats, createChat } from "@/lib/services/chat";
+import { authenticateUser } from "@/lib/services/auth";
 
 // Validation schemas
 const paginationSchema = z.object({

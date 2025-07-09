@@ -1,7 +1,6 @@
-"use server";
-
 import { hash } from "bcryptjs";
 import { db } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 type RegisterUserProps = {
 	email: string;
@@ -45,3 +44,11 @@ export const registerUser = async (data: RegisterUserProps) => {
 		);
 	}
 };
+
+export async function authenticateUser() {
+	const session = await auth();
+	if (!session?.user?.id) {
+		return { error: "Unauthorized", userId: null };
+	}
+	return { error: null, userId: session.user.id };
+}

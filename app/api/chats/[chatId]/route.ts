@@ -1,11 +1,7 @@
 import { z } from "zod";
 import { NextRequest, NextResponse } from "next/server";
-import {
-	authenticateUser,
-	renameChat,
-	toggleStar,
-	deleteChat,
-} from "@/lib/services/chat";
+import { renameChat, toggleStar, deleteChat } from "@/lib/services/chat";
+import { authenticateUser } from "@/lib/services/auth";
 
 // Validation schemas
 const patchSchema = z.discriminatedUnion("action", [
