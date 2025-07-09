@@ -82,11 +82,14 @@ export const getModelById = (modelId: string) => {
 };
 
 export function groupModelsByProvider(): Record<ModelProvider, AIModel[]> {
-	return AI_MODELS.reduce((acc, model) => {
-		if (!acc[model.provider]) {
-			acc[model.provider] = [];
-		}
-		acc[model.provider].push(model);
-		return acc;
-	}, {} as Record<ModelProvider, AIModel[]>);
+	return AI_MODELS.reduce(
+		(acc, model) => {
+			if (!acc[model.provider]) {
+				acc[model.provider] = [];
+			}
+			acc[model.provider].push(model);
+			return acc;
+		},
+		{} as Record<ModelProvider, AIModel[]>,
+	);
 }

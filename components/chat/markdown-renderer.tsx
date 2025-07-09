@@ -121,7 +121,7 @@ export function MarkdownRenderer({
 					: `https://${cleanUrl}`;
 
 				return `[${cleanText}](${finalUrl})`;
-			}
+			},
 		);
 	};
 
@@ -143,8 +143,8 @@ export function MarkdownRenderer({
 							? children.find(
 									(child) =>
 										child?.type === "code" ||
-										(child?.props && child.props.className)
-							  )
+										(child?.props && child.props.className),
+								)
 							: children;
 
 						if (
@@ -321,24 +321,24 @@ export function MarkdownRenderer({
 					}: ComponentPropsWithoutRef<"p">) => {
 						// Process paragraph content to handle potential inline links
 						const processTextNodes = (
-							node: React.ReactNode
+							node: React.ReactNode,
 						): React.ReactNode => {
 							if (typeof node === "string") {
 								// Check if this text contains markdown-style links that weren't parsed
 								if (node.includes("[") && node.includes("](")) {
 									// Split the text and create proper link elements
 									const parts = node.split(
-										/(\[[^\]]+\]\([^)]+\))/g
+										/(\[[^\]]+\]\([^)]+\))/g,
 									);
 									return parts.map((part, index) => {
 										const linkMatch = part.match(
-											/\[([^\]]+)\]\(([^)]+)\)/
+											/\[([^\]]+)\]\(([^)]+)\)/,
 										);
 										if (linkMatch) {
 											const [, linkText, url] = linkMatch;
 											const cleanUrl = url.trim();
 											const finalUrl = cleanUrl.match(
-												/^https?:\/\//
+												/^https?:\/\//,
 											)
 												? cleanUrl
 												: `https://${cleanUrl}`;

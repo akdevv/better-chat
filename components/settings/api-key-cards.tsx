@@ -41,6 +41,7 @@ export function ApiKeyCards() {
 		handleInputChange,
 		saveKey,
 		cancelEdit,
+		deleteKey,
 	} = useApiKeys();
 
 	const getStatusBadge = (apiKey: ApiKeyState) => {
@@ -98,7 +99,7 @@ export function ApiKeyCards() {
 			{providers.map((provider) => {
 				const IconComponent = provider.icon;
 				const apiKey: ApiKeyState = apiKeys.find(
-					(key) => key.id === provider.id
+					(key) => key.id === provider.id,
 				)!;
 
 				return (
@@ -152,7 +153,7 @@ export function ApiKeyCards() {
 											onChange={(e) =>
 												handleInputChange(
 													provider.id,
-													e.target.value
+													e.target.value,
 												)
 											}
 											className="font-mono text-sm flex-1 bg-muted border border-border/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-0"
@@ -161,7 +162,7 @@ export function ApiKeyCards() {
 											variant="outline"
 											size="sm"
 											onClick={() =>
-												console.log("delete")
+												deleteKey(provider.id)
 											}
 											disabled={apiKey.isDeleting}
 											className="h-12 w-12 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 border-none cursor-pointer"

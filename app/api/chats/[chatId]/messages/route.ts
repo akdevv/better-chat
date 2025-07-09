@@ -5,7 +5,7 @@ import { authenticateUser } from "@/lib/services/auth";
 // GET /chats/:chatId/messages => get all messages for a chat
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } }
+	{ params }: { params: { chatId: string } },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -24,7 +24,7 @@ export async function GET(
 		console.error("Error fetching messages:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch messages" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -32,7 +32,7 @@ export async function GET(
 // POST /api/chats/:chatId/messages - Send message & get AI response
 export async function POST(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } }
+	{ params }: { params: { chatId: string } },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -46,7 +46,7 @@ export async function POST(
 		if (!message.trim() || !model) {
 			return NextResponse.json(
 				{ error: "Message and model are required" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -62,7 +62,7 @@ export async function POST(
 			userId!,
 			message,
 			model,
-			abortController.signal
+			abortController.signal,
 		);
 		if (result.error) {
 			return NextResponse.json({ error: result.error }, { status: 500 });
@@ -78,7 +78,7 @@ export async function POST(
 		console.error("Error sending message:", error);
 		return NextResponse.json(
 			{ error: "Failed to send message" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

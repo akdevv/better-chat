@@ -58,10 +58,10 @@ export default function RegisterPage() {
 				router.push("/chat");
 			} else {
 				setError(
-					"Account created but failed to sign in. Please try logging in."
+					"Account created but failed to sign in. Please try logging in.",
 				);
 				toast.error(
-					"Account created but failed to sign in. Please try logging in."
+					"Account created but failed to sign in. Please try logging in.",
 				);
 			}
 		} catch (err) {
@@ -136,7 +136,7 @@ export default function RegisterPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700"
+								errors.password && "border-red-700",
 							)}
 						/>
 						<button

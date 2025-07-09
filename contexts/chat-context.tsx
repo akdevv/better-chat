@@ -17,7 +17,6 @@ interface ChatContextValue {
 	handleCreateChat: (e: React.FormEvent) => void;
 	handleSendMessage: (e: React.FormEvent) => void;
 
-	
 	onCancel: () => void;
 }
 

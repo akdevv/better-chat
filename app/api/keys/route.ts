@@ -12,7 +12,7 @@ export async function GET() {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 }
+				{ status: 401 },
 			);
 		}
 
@@ -25,7 +25,7 @@ export async function GET() {
 		console.error("Error fetching API keys:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 }
+				{ status: 401 },
 			);
 		}
 
@@ -47,28 +47,24 @@ export async function POST(req: NextRequest) {
 		if (!provider || !apiKey) {
 			return NextResponse.json(
 				{ error: "Provider and API key are required" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
-
-		console.log("provider", provider);
-		console.log("apiKey", apiKey);
 
 		// Validate provider
 		const validProviders = ["openai", "google", "anthropic"];
 		if (!validProviders.includes(provider.toLowerCase())) {
 			return NextResponse.json(
 				{ error: "Invalid provider" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
 		const verification = await verifyApiKey(provider, apiKey);
-		console.log("verification", verification);
 		if (!verification.success) {
 			return NextResponse.json(
 				{ error: verification.error },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -77,7 +73,7 @@ export async function POST(req: NextRequest) {
 			userId,
 			provider.toLowerCase(),
 			apiKey,
-			true // Mark as validated since we just verified it
+			true, // Mark as validated since we just verified it
 		);
 
 		return NextResponse.json({
@@ -90,7 +86,7 @@ export async function POST(req: NextRequest) {
 		console.error("Error saving API key:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

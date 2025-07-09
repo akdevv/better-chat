@@ -8,7 +8,7 @@ const groq = new Groq({
 export const callGroq = async (
 	message: string,
 	model: string,
-	signal?: AbortSignal
+	signal?: AbortSignal,
 ) => {
 	const selectedModel = AI_MODELS.find((m) => m.id === model);
 

@@ -41,7 +41,7 @@ export const Spinner = ({
 					"animate-spin",
 					sizeMap[size],
 					colorMap[color],
-					className
+					className,
 				)}
 			/>
 		</div>

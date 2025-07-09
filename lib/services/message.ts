@@ -31,7 +31,7 @@ export const sendMessage = async (
 	userId: string,
 	message: string,
 	model: string,
-	signal?: AbortSignal
+	signal?: AbortSignal,
 ) => {
 	try {
 		if (signal?.aborted) {

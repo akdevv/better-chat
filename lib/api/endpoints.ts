@@ -8,7 +8,7 @@ export const endpoints = {
 		// GET /chats - List all chats with pagination
 		list: async (params: { limit: number; offset: number }) => {
 			return api.get<SidebarChatResponse>(
-				`/chats?limit=${params.limit}&offset=${params.offset}`
+				`/chats?limit=${params.limit}&offset=${params.offset}`,
 			);
 		},
 
@@ -16,7 +16,7 @@ export const endpoints = {
 		create: async (data: { initialMessage: string; model?: string }) => {
 			return api.post<{ chatId: string; chat: SidebarChat }>(
 				"/chats",
-				data
+				data,
 			);
 		},
 
@@ -24,7 +24,7 @@ export const endpoints = {
 		update: async (
 			chatId: string,
 			action: "rename" | "toggle_star",
-			data?: { title?: string }
+			data?: { title?: string },
 		) => {
 			return api.patch<SidebarChat>(`/chats/${chatId}`, {
 				action,
@@ -57,22 +57,28 @@ export const endpoints = {
 		send: async (chatId: string, message: string, model: string) => {
 			// Use fetch directly for streaming instead of axios
 			const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
-			
-			const response = await fetch(`${API_URL}/chats/${chatId}/messages`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					// Add auth header if needed
-					...(typeof window !== "undefined" && localStorage.getItem("authjs.session-token") 
-						? { Authorization: `Bearer ${localStorage.getItem("authjs.session-token")}` }
-						: {}),
+
+			const response = await fetch(
+				`${API_URL}/chats/${chatId}/messages`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						// Add auth header if needed
+						...(typeof window !== "undefined" &&
+						localStorage.getItem("authjs.session-token")
+							? {
+									Authorization: `Bearer ${localStorage.getItem("authjs.session-token")}`,
+								}
+							: {}),
+					},
+					credentials: "include",
+					body: JSON.stringify({
+						message,
+						model,
+					}),
 				},
-				credentials: "include",
-				body: JSON.stringify({
-					message,
-					model,
-				}),
-			});
+			);
 
 			if (!response.ok) {
 				throw new Error(`HTTP error! status: ${response.status}`);

@@ -59,7 +59,7 @@ export const ChatInput = memo(
 					onCancel();
 				}
 			},
-			[onSendMessage, onCancel]
+			[onSendMessage, onCancel],
 		);
 
 		return (
@@ -140,5 +140,5 @@ export const ChatInput = memo(
 				</div>
 			</div>
 		);
-	}
+	},
 );

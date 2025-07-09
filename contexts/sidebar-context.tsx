@@ -32,7 +32,7 @@ interface SidebarContextValue {
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(
-	undefined
+	undefined,
 );
 
 export function useSidebar() {

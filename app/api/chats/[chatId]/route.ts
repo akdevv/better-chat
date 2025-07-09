@@ -17,7 +17,7 @@ const patchSchema = z.discriminatedUnion("action", [
 // PATCH /api/chats/[chatId] - Update a chat (rename or star)
 export async function PATCH(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } }
+	{ params }: { params: { chatId: string } },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -36,7 +36,7 @@ export async function PATCH(
 					error: "Invalid request",
 					details: validation.error.errors,
 				},
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -58,7 +58,7 @@ export async function PATCH(
 		console.error("Error updating chat:", error);
 		return NextResponse.json(
 			{ error: "Failed to update chat." },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -66,7 +66,7 @@ export async function PATCH(
 // DELETE /api/chats/[chatId] - Delete a chat
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } }
+	{ params }: { params: { chatId: string } },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -86,7 +86,7 @@ export async function DELETE(
 		console.error("Error deleting chat:", error);
 		return NextResponse.json(
 			{ error: "Failed to delete chat" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

@@ -16,7 +16,7 @@ interface SettingsContextValue {
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(
-	undefined
+	undefined,
 );
 
 export function useSettingsContext() {
@@ -35,7 +35,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 	// Load settings from localStorage on mount
 	useEffect(() => {
 		const savedTheme = localStorage.getItem("theme") as Theme;
-		const savedAccentColor = localStorage.getItem("accentColor") as AccentColor;
+		const savedAccentColor = localStorage.getItem(
+			"accentColor",
+		) as AccentColor;
 		const savedFont = localStorage.getItem("font") as Font;
 
 		if (savedTheme) setTheme(savedTheme);
@@ -46,17 +48,21 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 	// Apply theme changes to document
 	useEffect(() => {
 		const root = document.documentElement;
-		
+
 		// Remove existing theme classes
 		root.classList.remove("light", "dark");
-		
+
 		if (theme === "system") {
-			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+			const systemTheme = window.matchMedia(
+				"(prefers-color-scheme: dark)",
+			).matches
+				? "dark"
+				: "light";
 			root.classList.add(systemTheme);
 		} else {
 			root.classList.add(theme);
 		}
-		
+
 		localStorage.setItem("theme", theme);
 	}, [theme]);
 

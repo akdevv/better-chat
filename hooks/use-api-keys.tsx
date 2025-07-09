@@ -22,7 +22,7 @@ export const useApiKeys = () => {
 			isVerifying: false,
 			isDeleting: false,
 			isSaving: false,
-		}))
+		})),
 	);
 	const [isInitialLoading, setIsInitialLoading] = useState(false);
 
@@ -54,7 +54,7 @@ export const useApiKeys = () => {
 			setApiKeys((prev) =>
 				prev.map((key) => {
 					const serverApiKey = serverApiKeys.find(
-						(sk) => sk.provider === key.id
+						(sk) => sk.provider === key.id,
 					);
 					return {
 						...key,
@@ -64,7 +64,7 @@ export const useApiKeys = () => {
 								: "invalid"
 							: "none",
 					};
-				})
+				}),
 			);
 		} catch (error) {
 			console.error("Error loading API keys:", error);
@@ -77,8 +77,8 @@ export const useApiKeys = () => {
 		try {
 			setApiKeys((prev) =>
 				prev.map((key) =>
-					key.id === providerId ? { ...key, isLoading: true } : key
-				)
+					key.id === providerId ? { ...key, isLoading: true } : key,
+				),
 			);
 
 			const res = await fetch(`/api/keys/${providerId}`);
@@ -89,7 +89,7 @@ export const useApiKeys = () => {
 			const data = await res.json();
 			if (data.hasValidKey) {
 				const apiKeyResponse = await fetch(
-					`/api/keys/${providerId}/decrypt`
+					`/api/keys/${providerId}/decrypt`,
 				);
 				if (!apiKeyResponse.ok) {
 					throw new Error("Failed to decrypt API key");
@@ -104,9 +104,9 @@ export const useApiKeys = () => {
 									key: apiKeyData.apiKey || "",
 									isLoading: false,
 									isEditing: true,
-							  }
-							: key
-					)
+								}
+							: key,
+					),
 				);
 				return;
 			}
@@ -116,8 +116,8 @@ export const useApiKeys = () => {
 				prev.map((key) =>
 					key.id === providerId
 						? { ...key, isLoading: false, isEditing: false }
-						: key
-				)
+						: key,
+				),
 			);
 		} catch (error) {
 			console.error("Error loading API key for edit:", error);
@@ -125,38 +125,33 @@ export const useApiKeys = () => {
 				prev.map((key) =>
 					key.id === providerId
 						? { ...key, isLoading: false, isEditing: true, key: "" }
-						: key
-				)
+						: key,
+				),
 			);
 		}
 	};
 
 	const toggleEdit = (providerId: string) => {
-		console.log("trying to toggle edit");
 		const apiKey = apiKeys.find((key) => key.id === providerId);
-		console.log("apiKey", apiKey);
 
-		if (apiKey?.isEditing && apiKey.status === "verified") {
-			console.log("if");
+		if (!apiKey?.isEditing && apiKey?.status === "verified") {
 			loadApiKeyForEdit(providerId);
 		} else {
-			console.log("else");
 			setApiKeys((prev) =>
 				prev.map((key) =>
 					key.id === providerId
 						? { ...key, isEditing: !key.isEditing }
-						: key
-				)
+						: key,
+				),
 			);
-			console.log("key.isEditing", apiKey?.isEditing);
 		}
 	};
 
 	const handleInputChange = (providerId: string, value: string) => {
 		setApiKeys((prev) =>
 			prev.map((key) =>
-				key.id === providerId ? { ...key, key: value } : key
-			)
+				key.id === providerId ? { ...key, key: value } : key,
+			),
 		);
 	};
 
@@ -167,8 +162,8 @@ export const useApiKeys = () => {
 		try {
 			setApiKeys((prev) =>
 				prev.map((key) =>
-					key.id === providerId ? { ...key, isSaving: true } : key
-				)
+					key.id === providerId ? { ...key, isSaving: true } : key,
+				),
 			);
 
 			const res = await fetch("/api/keys", {
@@ -188,8 +183,8 @@ export const useApiKeys = () => {
 					prev.map((key) =>
 						key.id === providerId
 							? { ...key, status: "invalid", isSaving: false }
-							: key
-					)
+							: key,
+					),
 				);
 				toast.error(data.error);
 				console.error("Failed to save API key", data.error);
@@ -203,9 +198,9 @@ export const useApiKeys = () => {
 									isSaving: false,
 									isEditing: false,
 									key: "", // reset key after saving
-							  }
-							: key
-					)
+								}
+							: key,
+					),
 				);
 				toast.success("API key saved successfully");
 			}
@@ -215,8 +210,8 @@ export const useApiKeys = () => {
 				prev.map((key) =>
 					key.id === providerId
 						? { ...key, status: "invalid", isSaving: false }
-						: key
-				)
+						: key,
+				),
 			);
 		}
 	};
@@ -226,9 +221,55 @@ export const useApiKeys = () => {
 			prev.map((key) =>
 				key.id === providerId
 					? { ...key, isEditing: false, key: "" }
-					: key
-			)
+					: key,
+			),
 		);
+	};
+
+	const deleteKey = async (providerId: string) => {
+		try {
+			setApiKeys((prev) =>
+				prev.map((key) =>
+					key.id === providerId ? { ...key, isDeleting: true } : key,
+				),
+			);
+
+			const res = await fetch(`/api/keys/${providerId}`, {
+				method: "DELETE",
+			});
+
+			if (!res.ok) {
+				setApiKeys((prev) =>
+					prev.map((key) =>
+						key.id === providerId
+							? { ...key, isDeleting: false }
+							: key,
+					),
+				);
+				throw new Error("Failed to delete API key");
+			} else {
+				setApiKeys((prev) =>
+					prev.map((key) =>
+						key.id === providerId
+							? {
+									...key,
+									key: "",
+									isEditing: false,
+									isDeleting: false,
+									status: "none",
+								}
+							: key,
+					),
+				);
+			}
+		} catch (error) {
+			console.error("Error deleting API key:", error);
+			setApiKeys((prev) =>
+				prev.map((key) =>
+					key.id === providerId ? { ...key, isDeleting: false } : key,
+				),
+			);
+		}
 	};
 
 	// Load API keys on component mount
@@ -245,5 +286,6 @@ export const useApiKeys = () => {
 		handleInputChange,
 		saveKey,
 		cancelEdit,
+		deleteKey,
 	};
 };

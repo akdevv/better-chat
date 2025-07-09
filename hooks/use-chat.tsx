@@ -52,7 +52,7 @@ export function useChat() {
 				generateAIResponse(
 					chatId as string,
 					data[0].content,
-					selectedModel
+					selectedModel,
 				);
 			}
 		} catch (error) {
@@ -97,7 +97,7 @@ export function useChat() {
 				setIsCreatingChat(false);
 			}
 		},
-		[input, selectedModel, router]
+		[input, selectedModel, router],
 	);
 
 	// Send message
@@ -136,7 +136,7 @@ export function useChat() {
 			await generateAIResponse(
 				chatId as string,
 				trimmedInput,
-				selectedModel
+				selectedModel,
 			);
 		},
 		[
@@ -145,7 +145,7 @@ export function useChat() {
 			selectedModel,
 			chatState.isChatLoading,
 			chatState.isStreamingResponse,
-		]
+		],
 	);
 
 	const generateAIResponse = useCallback(
@@ -200,7 +200,7 @@ export function useChat() {
 						messages: prev.messages.map((msg) =>
 							msg.id === aiMessage.id
 								? { ...msg, content: accumulatedContent }
-								: msg
+								: msg,
 						),
 					}));
 				}
@@ -212,7 +212,7 @@ export function useChat() {
 				setChatState((prev) => ({
 					...prev,
 					messages: prev.messages.filter(
-						(msg) => msg.id !== aiMessage.id
+						(msg) => msg.id !== aiMessage.id,
 					),
 				}));
 			} finally {
@@ -223,7 +223,7 @@ export function useChat() {
 				abortControllerRef.current = null;
 			}
 		},
-		[chatId, selectedModel]
+		[chatId, selectedModel],
 	);
 
 	const onCancel = useCallback(() => {

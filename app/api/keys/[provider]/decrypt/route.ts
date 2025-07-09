@@ -10,14 +10,14 @@ import { decrypt } from "@/lib/encryption";
  */
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { provider: string } }
+	{ params }: { params: { provider: string } },
 ) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 }
+				{ status: 401 },
 			);
 		}
 
@@ -28,7 +28,7 @@ export async function GET(
 		if (!validProviders.includes(provider)) {
 			return NextResponse.json(
 				{ error: "Invalid provider" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -36,7 +36,7 @@ export async function GET(
 		if (!apiKey) {
 			return NextResponse.json(
 				{ error: "API key not found" },
-				{ status: 404 }
+				{ status: 404 },
 			);
 		}
 
@@ -51,7 +51,7 @@ export async function GET(
 		console.error("Error decrypting API key:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

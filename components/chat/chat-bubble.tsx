@@ -142,7 +142,7 @@ export function ChatBubble({
 																<button
 																	onClick={() =>
 																		toggleThinking(
-																			message.id
+																			message.id,
 																		)
 																	}
 																	className="group w-full flex items-center justify-between p-3 bg-muted/15 hover:bg-muted/25 transition-all duration-200 rounded-lg border border-transparent hover:border-muted/30"
@@ -181,7 +181,7 @@ export function ChatBubble({
 															/>
 														)}
 													</div>
-												)
+												),
 											)}
 										</div>
 									)}
@@ -199,7 +199,7 @@ export function ChatBubble({
 										onClick={() =>
 											copyToClipboard(
 												message.content,
-												message.id
+												message.id,
 											)
 										}
 									>

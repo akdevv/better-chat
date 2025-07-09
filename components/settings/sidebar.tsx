@@ -28,7 +28,7 @@ export default function Sidebar() {
 							<div
 								className={cn(
 									"p-3 transition-colors hover:bg-accent rounded-lg",
-									isActive && "bg-accent/30"
+									isActive && "bg-accent/30",
 								)}
 							>
 								{item.title}

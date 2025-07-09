@@ -86,7 +86,7 @@ export default function LoginPage() {
 						disabled={isPending}
 						className={cn(
 							"w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent",
-							errors.email && "border-2 border-red-700"
+							errors.email && "border-2 border-red-700",
 						)}
 					/>
 					{errors.email && (
@@ -106,7 +106,7 @@ export default function LoginPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700"
+								errors.password && "border-red-700",
 							)}
 						/>
 						<button

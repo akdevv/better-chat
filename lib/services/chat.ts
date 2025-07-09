@@ -15,7 +15,7 @@ const formatChat = (chat: Chat): SidebarChat => {
 
 export const getUserChats = async (
 	userId: string,
-	params: { limit: number; offset: number }
+	params: { limit: number; offset: number },
 ) => {
 	try {
 		const { limit, offset } = params;
@@ -31,7 +31,7 @@ export const getUserChats = async (
 		]);
 
 		const formattedChats: SidebarChat[] = chats.map((chat) =>
-			formatChat(chat)
+			formatChat(chat),
 		);
 
 		return { chats: formattedChats, total };
@@ -43,7 +43,7 @@ export const getUserChats = async (
 
 export const createChat = async (
 	userId: string,
-	{ model, initialMessage }: { model: string; initialMessage: string }
+	{ model, initialMessage }: { model: string; initialMessage: string },
 ) => {
 	try {
 		let chatId: string;
@@ -101,7 +101,7 @@ export const createChat = async (
 export const renameChat = async (
 	chatId: string,
 	userId: string,
-	title: string
+	title: string,
 ) => {
 	try {
 		if (!title || title.trim().length === 0) {

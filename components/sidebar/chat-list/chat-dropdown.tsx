@@ -78,7 +78,7 @@ export function ChatDropdown({
 				setIsRenaming(false);
 			}
 		},
-		[chat.id, chat.title, renameChat]
+		[chat.id, chat.title, renameChat],
 	);
 
 	const handleToggleStar = useCallback(async () => {
@@ -149,8 +149,8 @@ export function ChatDropdown({
 						{isStarring
 							? "..."
 							: chat.isStarred
-							? "Unstar"
-							: "Star"}
+								? "Unstar"
+								: "Star"}
 					</DropdownMenuItem>
 
 					{/* Delete */}

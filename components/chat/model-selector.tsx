@@ -45,7 +45,7 @@ export const ModelSelector = memo(
 				}
 				onValueChange?.(modelId);
 			},
-			[onValueChange, router]
+			[onValueChange, router],
 		);
 
 		return (
@@ -63,7 +63,7 @@ export const ModelSelector = memo(
 						"text-sm font-medium",
 						"focus:outline-none focus:ring-1 focus:ring-ring",
 						"disabled:opacity-50 disabled:cursor-not-allowed",
-						className
+						className,
 					)}
 					tabIndex={-1}
 				>
@@ -137,5 +137,5 @@ export const ModelSelector = memo(
 				</SelectContent>
 			</Select>
 		);
-	}
+	},
 );

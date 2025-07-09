@@ -67,7 +67,7 @@ axiosInstance.interceptors.response.use(
 			message: msg,
 			status: error.response.status,
 		});
-	}
+	},
 );
 
 // helper functions

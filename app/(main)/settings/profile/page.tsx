@@ -101,9 +101,14 @@ export default function ProfilePage() {
 					{usageStats.map((stat, index) => {
 						const IconComponent = stat.icon;
 						return (
-							<Card key={index} className="p-4 bg-background border-border/50">
+							<Card
+								key={index}
+								className="p-4 bg-background border-border/50"
+							>
 								<div className="flex items-center gap-3">
-									<div className={`p-2 rounded-lg ${stat.color}`}>
+									<div
+										className={`p-2 rounded-lg ${stat.color}`}
+									>
 										<IconComponent className="h-5 w-5" />
 									</div>
 									<div className="space-y-0.5">

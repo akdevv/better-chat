@@ -19,7 +19,7 @@ const formatApiKey = (key: any): ApiKeyData => {
 // Get API key for a user and provider
 export const getApiKey = async (
 	userId: string,
-	provider: string
+	provider: string,
 ): Promise<ApiKeyState | null> => {
 	try {
 		const apiKey = await db.apiKey.findFirst({
@@ -43,7 +43,7 @@ export const getApiKey = async (
 					isVerifying: false,
 					isDeleting: false,
 					isSaving: false,
-			  }
+				}
 			: null;
 	} catch (error) {
 		console.error("Error fetching API key:", error);
@@ -69,7 +69,7 @@ export const saveApiKey = async (
 	userId: string,
 	provider: string,
 	apiKey: string,
-	isValidated: boolean = false
+	isValidated: boolean = false,
 ): Promise<ApiKeyData> => {
 	try {
 		const user = await db.user.findUnique({
@@ -115,7 +115,7 @@ export const saveApiKey = async (
 // Check if user has valid API key for provider
 export const checkHasValidApiKey = async (
 	userId: string,
-	provider: string
+	provider: string,
 ): Promise<boolean> => {
 	try {
 		const user = await db.user.findUnique({
@@ -138,5 +138,33 @@ export const checkHasValidApiKey = async (
 	} catch (error) {
 		console.error("Error checking API key:", error);
 		throw new Error("Failed to check API key");
+	}
+};
+
+// Delete API key for a user and provider
+export const deleteApiKey = async (
+	userId: string,
+	provider: string,
+): Promise<boolean> => {
+	try {
+		const user = await db.user.findUnique({
+			where: { id: userId },
+		});
+
+		if (!user) {
+			throw new Error(`User with ID ${userId} not found`);
+		}
+
+		const deletedKey = await db.apiKey.deleteMany({
+			where: {
+				userId,
+				provider: provider as "openai" | "google" | "anthropic",
+			},
+		});
+
+		return deletedKey.count > 0;
+	} catch (error) {
+		console.error("Error deleting API key:", error);
+		throw new Error("Failed to delete API key");
 	}
 };

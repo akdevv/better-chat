@@ -23,7 +23,6 @@ async function verifyOpenAIKey(apiKey: string): Promise<VerificationResult> {
 			max_tokens: 50,
 		});
 
-        console.log("OpenAI API Key: ", res.choices[0].message.content);
 		if (res.choices && res.choices.length > 0) {
 			return {
 				success: true,
@@ -62,7 +61,6 @@ async function verifyAnthropicKey(apiKey: string): Promise<VerificationResult> {
 		});
 
 		if (res.content && res.content.length > 0) {
-			console.log("Anthropic API Key: ", res.content.toString());
 			return {
 				success: true,
 				latency: Date.now() - startTime,
@@ -97,7 +95,6 @@ async function verifyGoogleKey(apiKey: string): Promise<VerificationResult> {
 		});
 
 		if (res.text) {
-			console.log("Google API Key: ", res.text);
 			return {
 				success: true,
 				latency: Date.now() - startTime,
@@ -109,7 +106,7 @@ async function verifyGoogleKey(apiKey: string): Promise<VerificationResult> {
 			};
 	} catch (error) {
 		let errorMessage = "Unknown error";
-		
+
 		if (error instanceof Error) {
 			try {
 				const errorData = JSON.parse(error.message);
@@ -132,7 +129,7 @@ async function verifyGoogleKey(apiKey: string): Promise<VerificationResult> {
 
 export const verifyApiKey = async (
 	provider: string,
-	apiKey: string
+	apiKey: string,
 ): Promise<VerificationResult> => {
 	if (!apiKey || !apiKey.trim()) {
 		return {
@@ -157,7 +154,7 @@ export const verifyApiKey = async (
 };
 
 export const verifyMultipleApiKeys = async (
-	keys: Array<{ provider: string; apiKey: string }>
+	keys: Array<{ provider: string; apiKey: string }>,
 ): Promise<Record<string, VerificationResult>> => {
 	const results: Record<string, VerificationResult> = {};
 

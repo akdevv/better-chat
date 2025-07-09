@@ -1,12 +1,13 @@
 # Better Chat - Todo
 
 # Date: 4 July 2025
+
 - [x] Delete chat (with confirmation, update sidebar)
 - [x] Rename chat (context menu, inline edit, save)
 - [x] Star/favorite chat (toggle, starred section, persist)
 
-
 # Date: 5 July 2025
+
 - [x] Auto chat naming (after first user+AI message, max 4 words, update name)
 - [x] Auto re-ordering of chats, when chat updates it should be moved to the top of the list
 - [ ] Also optimistically update the frontend order of chats

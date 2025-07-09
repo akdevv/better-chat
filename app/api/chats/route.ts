@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 }
+				{ status: 401 },
 			);
 		}
 
@@ -47,14 +47,14 @@ export async function GET(req: NextRequest) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Invalid parameters", details: error.errors },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
 		console.error("Error fetching chats:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch chats" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -66,12 +66,12 @@ export async function POST(req: NextRequest) {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 }
+				{ status: 401 },
 			);
 		}
 
 		const { model, initialMessage } = createChatSchema.parse(
-			await req.json()
+			await req.json(),
 		);
 
 		const chatId = await createChat(userId, {
@@ -84,14 +84,14 @@ export async function POST(req: NextRequest) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Invalid request body", details: error.errors },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
 		console.error("Error creating chat:", error);
 		return NextResponse.json(
 			{ error: "Failed to create chat" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

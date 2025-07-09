@@ -30,19 +30,19 @@ export function useSidebarData() {
 					return [update.payload, ...state].sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(a.updatedAt).getTime(),
 					);
 				case "UPDATE":
 					return state
 						.map((chat) =>
 							chat.id === update.payload.id
 								? update.payload
-								: chat
+								: chat,
 						)
 						.sort(
 							(a, b) =>
 								new Date(b.updatedAt).getTime() -
-								new Date(a.updatedAt).getTime()
+								new Date(a.updatedAt).getTime(),
 						);
 				case "DELETE":
 					return state.filter((chat) => chat.id !== update.payload);
@@ -50,12 +50,12 @@ export function useSidebarData() {
 					return state.map((chat) =>
 						chat.id === update.payload.id
 							? { ...chat, title: update.payload.title }
-							: chat
+							: chat,
 					);
 				default:
 					return state;
 			}
-		}
+		},
 	);
 
 	// cache validation
@@ -93,7 +93,7 @@ export function useSidebarData() {
 				newChats.sort(
 					(a: SidebarChat, b: SidebarChat) =>
 						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
+						new Date(a.updatedAt).getTime(),
 				);
 
 				setChats(newChats);
@@ -117,7 +117,7 @@ export function useSidebarData() {
 				loading(false);
 			}
 		},
-		[chats, page, getCachedData]
+		[chats, page, getCachedData],
 	);
 
 	// DELETE /chats/:chatId => delete a chat
@@ -134,7 +134,7 @@ export function useSidebarData() {
 				console.error("Failed to delete chat:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[optimisticChats, setOptimisticChats],
 	);
 
 	// PATCH /chats/:chatId => (rename chat)
@@ -157,12 +157,12 @@ export function useSidebarData() {
 				// update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === res.id ? res : chat
+						chat.id === res.id ? res : chat,
 					);
 					return updated.sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(a.updatedAt).getTime(),
 					);
 				});
 				cache.current = null;
@@ -170,7 +170,7 @@ export function useSidebarData() {
 				console.error("Failed to rename chat:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[optimisticChats, setOptimisticChats],
 	);
 
 	// PATCH /chats/:chatId => (toggle star)
@@ -193,12 +193,12 @@ export function useSidebarData() {
 				// update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === res.id ? res : chat
+						chat.id === res.id ? res : chat,
 					);
 					return updated.sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(a.updatedAt).getTime(),
 					);
 				});
 				cache.current = null;
@@ -206,7 +206,7 @@ export function useSidebarData() {
 				console.error("Failed to toggle star:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[optimisticChats, setOptimisticChats],
 	);
 
 	const addChat = useCallback(
@@ -218,18 +218,18 @@ export function useSidebarData() {
 				[...prev, newChat].sort(
 					(a, b) =>
 						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
-				)
+						new Date(a.updatedAt).getTime(),
+				),
 			);
 		},
-		[setOptimisticChats]
+		[setOptimisticChats],
 	);
 
 	const generateTitle = useCallback(
 		async (chatId: string, message: string) => {
 			return "implement later";
 		},
-		[]
+		[],
 	);
 
 	// inital load
