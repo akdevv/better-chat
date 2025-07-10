@@ -21,6 +21,17 @@ export const createGoogleStream = async (
 
 	const google = new GoogleGenAI({ apiKey });
 
+	// Transform messages to Google's expected format
+	const formattedMessages = messages.map((message) => ({
+		role:
+			message.role === "USER"
+				? "user"
+				: message.role === "ASSISTANT"
+				? "model"
+				: "user",
+		parts: [{ text: message.content }],
+	}));
+
 	return new ReadableStream({
 		async start(controller) {
 			try {
@@ -32,7 +43,7 @@ export const createGoogleStream = async (
 
 				const stream = await google.models.generateContentStream({
 					model: modelInfo.id,
-					contents: messages,
+					contents: formattedMessages,
 					config: {
 						maxOutputTokens: maxTokens,
 						temperature,

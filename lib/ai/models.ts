@@ -74,16 +74,6 @@ export const AI_MODELS: AIModel[] = [
 		maxOutputTokens: 64000, // 64K max output
 		maxMessageLength: 200000,
 	},
-	{
-		id: "gemini-2.5-flash-lite",
-		name: "Gemini 2.5 Flash-Lite",
-		provider: "google",
-		isFree: false,
-		isNew: true,
-		contextWindow: 1000000, // 1M context window
-		maxOutputTokens: 32000,
-		maxMessageLength: 200000,
-	},
 
 	// OpenAI models (Paid)
 	{
