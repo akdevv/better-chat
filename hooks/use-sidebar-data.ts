@@ -1,7 +1,6 @@
 "use client";
 
 import { SidebarChat } from "@/lib/types/sidebar";
-import { endpoints } from "@/lib/api/endpoints";
 import { useState, useCallback, useRef, useEffect, useOptimistic } from "react";
 
 const ITEMS_PER_PAGE = 50;
@@ -30,19 +29,19 @@ export function useSidebarData() {
 					return [update.payload, ...state].sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime(),
+							new Date(a.updatedAt).getTime()
 					);
 				case "UPDATE":
 					return state
 						.map((chat) =>
 							chat.id === update.payload.id
 								? update.payload
-								: chat,
+								: chat
 						)
 						.sort(
 							(a, b) =>
 								new Date(b.updatedAt).getTime() -
-								new Date(a.updatedAt).getTime(),
+								new Date(a.updatedAt).getTime()
 						);
 				case "DELETE":
 					return state.filter((chat) => chat.id !== update.payload);
@@ -50,12 +49,12 @@ export function useSidebarData() {
 					return state.map((chat) =>
 						chat.id === update.payload.id
 							? { ...chat, title: update.payload.title }
-							: chat,
+							: chat
 					);
 				default:
 					return state;
 			}
-		},
+		}
 	);
 
 	// cache validation
@@ -82,22 +81,27 @@ export function useSidebarData() {
 
 			try {
 				const offset = loadMore ? page * ITEMS_PER_PAGE : 0;
-				const res = await endpoints.chats.list({
-					limit: ITEMS_PER_PAGE,
-					offset,
-				});
+				const res = await fetch(
+					`/api/chats?limit=${ITEMS_PER_PAGE}&offset=${offset}`
+				);
+
+				if (!res.ok) {
+					throw new Error("Failed to fetch chats");
+				}
+
+				const data = await res.json();
 
 				const newChats = loadMore
-					? [...chats, ...res.chats]
-					: res.chats;
+					? [...chats, ...data.chats]
+					: data.chats;
 				newChats.sort(
 					(a: SidebarChat, b: SidebarChat) =>
 						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime(),
+						new Date(a.updatedAt).getTime()
 				);
 
 				setChats(newChats);
-				setHasMore(res.chats.length === ITEMS_PER_PAGE);
+				setHasMore(data.chats.length === ITEMS_PER_PAGE);
 
 				if (loadMore) {
 					setPage((prev) => prev + 1);
@@ -107,7 +111,7 @@ export function useSidebarData() {
 					cache.current = {
 						data: newChats,
 						timestamp: Date.now(),
-						total: res.pagination.total,
+						total: data.pagination.total,
 					};
 				}
 			} catch (error) {
@@ -117,7 +121,7 @@ export function useSidebarData() {
 				loading(false);
 			}
 		},
-		[chats, page, getCachedData],
+		[chats, page, getCachedData]
 	);
 
 	// DELETE /chats/:chatId => delete a chat
@@ -126,7 +130,17 @@ export function useSidebarData() {
 			setOptimisticChats({ type: "DELETE", payload: chatId });
 
 			try {
-				await endpoints.chats.delete(chatId);
+				const res = await fetch(`/api/chats/${chatId}`, {
+					method: "DELETE",
+					headers: {
+						"Content-Type": "application/json",
+					},
+				});
+
+				if (!res.ok) {
+					throw new Error("Failed to delete chat");
+				}
+
 				// update actual state
 				setChats((prev) => prev.filter((chat) => chat.id !== chatId));
 				cache.current = null;
@@ -134,7 +148,7 @@ export function useSidebarData() {
 				console.error("Failed to delete chat:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats],
+		[optimisticChats, setOptimisticChats]
 	);
 
 	// PATCH /chats/:chatId => (rename chat)
@@ -152,17 +166,29 @@ export function useSidebarData() {
 			setOptimisticChats({ type: "UPDATE", payload: updatedChat });
 
 			try {
-				const res = await endpoints.chats.rename(chatId, newTitle);
+				const res = await fetch(`/api/chats/${chatId}`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ title: newTitle, action: "rename" }),
+				});
+
+				if (!res.ok) {
+					throw new Error("Failed to rename chat");
+				}
+
+				const updatedChat = await res.json();
 
 				// update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === res.id ? res : chat,
+						chat.id === updatedChat.id ? updatedChat : chat
 					);
 					return updated.sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime(),
+							new Date(a.updatedAt).getTime()
 					);
 				});
 				cache.current = null;
@@ -170,7 +196,7 @@ export function useSidebarData() {
 				console.error("Failed to rename chat:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats],
+		[optimisticChats, setOptimisticChats]
 	);
 
 	// PATCH /chats/:chatId => (toggle star)
@@ -188,17 +214,29 @@ export function useSidebarData() {
 			setOptimisticChats({ type: "UPDATE", payload: updatedChat });
 
 			try {
-				const res = await endpoints.chats.toggleStar(chatId);
+				const res = await fetch(`/api/chats/${chatId}`, {
+					method: "PATCH",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ action: "toggle_star" }),
+				});
+
+				if (!res.ok) {
+					throw new Error("Failed to toggle star");
+				}
+
+				const updatedChat = await res.json();
 
 				// update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === res.id ? res : chat,
+						chat.id === updatedChat.id ? updatedChat : chat
 					);
 					return updated.sort(
 						(a, b) =>
 							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime(),
+							new Date(a.updatedAt).getTime()
 					);
 				});
 				cache.current = null;
@@ -206,7 +244,7 @@ export function useSidebarData() {
 				console.error("Failed to toggle star:", error);
 			}
 		},
-		[optimisticChats, setOptimisticChats],
+		[optimisticChats, setOptimisticChats]
 	);
 
 	const addChat = useCallback(
@@ -218,18 +256,18 @@ export function useSidebarData() {
 				[...prev, newChat].sort(
 					(a, b) =>
 						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime(),
-				),
+						new Date(a.updatedAt).getTime()
+				)
 			);
 		},
-		[setOptimisticChats],
+		[setOptimisticChats]
 	);
 
 	const generateTitle = useCallback(
 		async (chatId: string, message: string) => {
 			return "implement later";
 		},
-		[],
+		[]
 	);
 
 	// inital load
