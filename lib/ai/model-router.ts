@@ -124,9 +124,12 @@ const prepareMessages = (
 	currentMessage: string
 ): AIMessage[] => {
 	validateChatInput(model, currentMessage, messages);
+	console.log("messages", messages);
+	console.log("currentMessage", currentMessage);
+	console.log("model", model);
 
 	// No history, just add current message
-	if (messages.length === 0) {
+	if (messages.length === 1) {
 		return [{ role: "USER", content: currentMessage }];
 	}
 
