@@ -6,6 +6,9 @@ export interface AIModel {
 	provider: ModelProvider;
 	isFree: boolean;
 	isNew?: boolean;
+	contextWindow: number;
+	maxOutputTokens: number;
+	maxMessageLength: number;
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -15,12 +18,9 @@ export const AI_MODELS: AIModel[] = [
 		name: "DeepSeek R1",
 		provider: "groq",
 		isFree: true,
-	},
-	{
-		id: "qwen/qwen3-32b",
-		name: "Qwen 3",
-		provider: "groq",
-		isFree: true,
+		contextWindow: 128000, // 128K context window
+		maxOutputTokens: 8192,
+		maxMessageLength: 32000,
 	},
 	{
 		id: "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -28,6 +28,9 @@ export const AI_MODELS: AIModel[] = [
 		provider: "groq",
 		isFree: true,
 		isNew: true,
+		contextWindow: 128000,
+		maxOutputTokens: 8192,
+		maxMessageLength: 32000,
 	},
 
 	// Anthropic models (Paid)
@@ -36,41 +39,70 @@ export const AI_MODELS: AIModel[] = [
 		name: "Claude Opus 4",
 		provider: "anthropic",
 		isFree: false,
+		contextWindow: 200000, // 200K context window
+		maxOutputTokens: 32000, // 32K max output
+		maxMessageLength: 50000,
 	},
 	{
 		id: "claude-sonnet-4-20250514",
 		name: "Claude Sonnet 4",
 		provider: "anthropic",
 		isFree: false,
+		contextWindow: 200000, // 200K context window
+		maxOutputTokens: 64000, // 64K max output
+		maxMessageLength: 50000,
 	},
 
 	// Google models (Paid)
 	{
-		id: "gemma2-9b-it",
-		name: "Gemma 2",
+		id: "gemini-2.5-pro",
+		name: "Gemini 2.5 Pro",
 		provider: "google",
 		isFree: false,
+		isNew: true,
+		contextWindow: 1000000, // 1M context window
+		maxOutputTokens: 64000, // 64K max output
+		maxMessageLength: 200000,
+	},
+	{
+		id: "gemini-2.5-flash",
+		name: "Gemini 2.5 Flash",
+		provider: "google",
+		isFree: false,
+		isNew: true,
+		contextWindow: 1000000, // 1M context window
+		maxOutputTokens: 64000, // 64K max output
+		maxMessageLength: 200000,
+	},
+	{
+		id: "gemini-2.5-flash-lite",
+		name: "Gemini 2.5 Flash-Lite",
+		provider: "google",
+		isFree: false,
+		isNew: true,
+		contextWindow: 1000000, // 1M context window
+		maxOutputTokens: 32000,
+		maxMessageLength: 200000,
 	},
 
 	// OpenAI models (Paid)
 	{
-		id: "o3",
-		name: "O3",
+		id: "gpt-4o",
+		name: "GPT-4o",
 		provider: "openai",
 		isFree: false,
-		isNew: true,
+		contextWindow: 128000, // 128K context window
+		maxOutputTokens: 16384, // 16K max output
+		maxMessageLength: 32000,
 	},
 	{
-		id: "o4-mini",
-		name: "O4 Mini",
+		id: "gpt-4o-mini",
+		name: "GPT-4o Mini",
 		provider: "openai",
 		isFree: false,
-	},
-	{
-		id: "o4-mini-high",
-		name: "O4 Mini High",
-		provider: "openai",
-		isFree: false,
+		contextWindow: 128000, // 128K context window
+		maxOutputTokens: 16384, // 16K max output
+		maxMessageLength: 32000,
 	},
 ];
 
@@ -82,14 +114,11 @@ export const getModelById = (modelId: string) => {
 };
 
 export function groupModelsByProvider(): Record<ModelProvider, AIModel[]> {
-	return AI_MODELS.reduce(
-		(acc, model) => {
-			if (!acc[model.provider]) {
-				acc[model.provider] = [];
-			}
-			acc[model.provider].push(model);
-			return acc;
-		},
-		{} as Record<ModelProvider, AIModel[]>,
-	);
+	return AI_MODELS.reduce((acc, model) => {
+		if (!acc[model.provider]) {
+			acc[model.provider] = [];
+		}
+		acc[model.provider].push(model);
+		return acc;
+	}, {} as Record<ModelProvider, AIModel[]>);
 }

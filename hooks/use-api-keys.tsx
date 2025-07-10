@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ApiKeyData, ApiKeyState } from "@/lib/types/settings";
+import { ApiKeyData, ApiKeyState } from "@/lib/types/api-keys";
 import { toast } from "sonner";
 
 const providers = [

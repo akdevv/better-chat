@@ -3,7 +3,7 @@ import { authenticateUser } from "@/lib/services/auth";
 import { getApiKeys } from "@/lib/services/api-keys";
 import { verifyApiKey } from "@/lib/ai/verifier";
 import { saveApiKey } from "@/lib/services/api-keys";
-import { ApiKeyData } from "@/lib/types/settings";
+import { ApiKeyData } from "@/lib/types/api-keys";
 
 // GET /api/keys - Get all API keys for the user
 export async function GET() {

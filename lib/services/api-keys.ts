@@ -1,14 +1,11 @@
 import { db } from "@/lib/prisma";
 import { encrypt } from "@/lib/encryption";
-import { ApiKeyData, ApiKeyState } from "@/lib/types/settings";
+import { ApiKeyData, ApiKeyState } from "@/lib/types/api-keys";
 
 const formatApiKey = (key: any): ApiKeyData => {
 	return {
 		id: key.id,
-		provider: key.provider.toLowerCase() as
-			| "openai"
-			| "google"
-			| "anthropic",
+		provider: key.provider as "openai" | "google" | "anthropic",
 		isValidated: key.isValidated,
 		lastValidated: key.lastValidated || undefined,
 		createdAt: key.createdAt,

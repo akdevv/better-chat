@@ -1,7 +1,7 @@
 import { authenticateUser } from "@/lib/services/auth";
 import { getApiKey } from "@/lib/services/api-keys";
 import { NextRequest, NextResponse } from "next/server";
-import { ApiKeyState } from "@/lib/types/settings";
+import { ApiKeyState } from "@/lib/types/api-keys";
 import { decrypt } from "@/lib/encryption";
 
 /**

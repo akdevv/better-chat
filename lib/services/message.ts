@@ -1,7 +1,5 @@
-import "server-only";
-
 import { db } from "@/lib/prisma";
-import { callGroq } from "@/lib/ai/callGroq";
+import { sendMessageToAIWithHistory } from "@/lib/ai/model-router";
 
 export const getMessages = async (chatId: string, userId: string) => {
 	try {
@@ -31,7 +29,7 @@ export const sendMessage = async (
 	userId: string,
 	message: string,
 	model: string,
-	signal?: AbortSignal,
+	signal?: AbortSignal
 ) => {
 	try {
 		if (signal?.aborted) {
@@ -70,7 +68,13 @@ export const sendMessage = async (
 			return { error: "Request was cancelled" };
 		}
 
-		const stream = await callGroq(message, model, signal);
+		const stream = await sendMessageToAIWithHistory(
+			chat.messages,
+			message,
+			model,
+			userId,
+			{ signal }
+		);
 		let completeResponse = "";
 
 		const transformStream = new TransformStream({
