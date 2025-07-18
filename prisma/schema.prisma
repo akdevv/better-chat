@@ -75,15 +75,57 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  chatId    String
-  role      Role     @default(USER)
-  content   String
-  createdAt DateTime @default(now())
-  model     String?
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  id            String         @id @default(cuid())
+  chatId        String
+  role          Role           @default(USER)
+  content       String
+  createdAt     DateTime       @default(now())
+  model         String?
+  chat          Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  messageFiles  MessageFile[]
+  messageImages MessageImage[]
 
   @@index([chatId])
+}
+
+model UploadedImage {
+  id             String         @id @default(cuid())
+  userId         String
+  originalName   String
+  mimeType       String
+  size           Int
+  uploadThingKey String         @unique
+  uploadThingUrl String
+  createdAt      DateTime       @default(now())
+  messageImages  MessageImage[]
+
+  @@index([userId])
+  @@index([uploadThingKey])
+}
+
+model MessageImage {
+  id              String        @id @default(cuid())
+  messageId       String
+  uploadedImageId String
+  message         Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedImage   UploadedImage @relation(fields: [uploadedImageId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, uploadedImageId])
+  @@index([messageId])
+}
+
+model MessageFile {
+  id            String       @id @default(cuid())
+  messageId     String
+  fileName      String
+  mimeType      String
+  size          Int
+  fileCategory  FileCategory
+  parsedContent String?
+  metadata      Json?
+  message       Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
 }
 
 model UserSettings {
@@ -102,7 +144,7 @@ model ApiKey {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, provider])
   @@index([userId])
@@ -118,4 +160,10 @@ enum Role {
   USER
   ASSISTANT
   SYSTEM
+}
+
+enum FileCategory {
+  document
+  code
+  data
 }

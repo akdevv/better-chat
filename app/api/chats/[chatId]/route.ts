@@ -74,7 +74,7 @@ export async function DELETE(
 			return NextResponse.json({ error }, { status: 401 });
 		}
 
-		const { chatId } = params;
+		const { chatId } = await params;
 		const result = await deleteChat(chatId, userId!);
 
 		if (result.error) {

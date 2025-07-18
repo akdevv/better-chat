@@ -206,15 +206,37 @@ export function useChat() {
 				}
 			} catch (error) {
 				console.error("Streaming error:", error);
-				toast.error("Failed to get AI response. Please try again.");
-
-				// Remove failed AI message
-				setChatState((prev) => ({
-					...prev,
-					messages: prev.messages.filter(
-						(msg) => msg.id !== aiMessage.id,
-					),
-				}));
+				
+				// Check if it was aborted (user stopped the response)
+				if (error instanceof Error && error.name === "AbortError") {
+					// Keep the partial response and save it to database
+					setChatState((prev) => {
+						const currentMessage = prev.messages.find(msg => msg.id === aiMessage.id);
+						if (currentMessage && currentMessage.content.trim()) {
+							// Save partial response to database
+							fetch(`/api/chats/${chatId}/messages`, {
+								method: "PATCH",
+								headers: {
+									"Content-Type": "application/json",
+								},
+								body: JSON.stringify({
+									content: currentMessage.content,
+									model: selectedModel,
+								}),
+							}).catch(console.error);
+						}
+						return prev;
+					});
+				} else {
+					toast.error("Failed to get AI response. Please try again.");
+					// Remove failed AI message only if it's not an abort
+					setChatState((prev) => ({
+						...prev,
+						messages: prev.messages.filter(
+							(msg) => msg.id !== aiMessage.id,
+						),
+					}));
+				}
 			} finally {
 				setChatState((prev) => ({
 					...prev,
@@ -230,6 +252,40 @@ export function useChat() {
 		setInput("");
 		setSelectedModel(DEFAULT_MODEL);
 		autoGenerateAIResponseRef.current = false;
+	}, []);
+
+	const onStop = useCallback(() => {
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+			abortControllerRef.current = null;
+			
+			// Process the current accumulated content for thinking responses
+			setChatState((prev) => {
+				const updatedMessages = prev.messages.map((msg) => {
+					// Find the AI message that's currently being streamed
+					if (msg.role === "ASSISTANT" && msg.content) {
+						let finalContent = msg.content;
+						
+						// Check if it's a thinking response with incomplete tags
+						if (finalContent.includes("<think>") && !finalContent.includes("</think>")) {
+							// Add closing think tag
+							finalContent += "</think>";
+						}
+						
+						return { ...msg, content: finalContent };
+					}
+					return msg;
+				});
+				
+				return {
+					...prev,
+					messages: updatedMessages,
+					isStreamingResponse: false,
+				};
+			});
+			
+			toast.info("Response stopped");
+		}
 	}, []);
 
 	useEffect(() => {
@@ -249,5 +305,6 @@ export function useChat() {
 		handleCreateChat,
 		handleSendMessage,
 		onCancel,
+		onStop,
 	};
 }

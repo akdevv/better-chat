@@ -18,6 +18,7 @@ interface ChatContextValue {
 	handleSendMessage: (e: React.FormEvent) => void;
 
 	onCancel: () => void;
+	onStop: () => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);
