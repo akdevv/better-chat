@@ -25,7 +25,7 @@ export async function PATCH(
 			return NextResponse.json({ error }, { status: 401 });
 		}
 
-		const { chatId } = params;
+		const { chatId } = await params;
 		const body = await req.json();
 
 		// Validate request body

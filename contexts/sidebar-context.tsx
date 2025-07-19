@@ -9,8 +9,8 @@ interface SidebarContextValue {
 	// Data
 	chats: SidebarChat[];
 	isLoading: boolean;
-	isLoadingMore: boolean;
-	hasMore: boolean;
+	totalCount: number;
+	ITEMS_PER_PAGE: number;
 
 	// UI
 	isCollapsed: boolean;
@@ -18,8 +18,8 @@ interface SidebarContextValue {
 	isMobileMenuOpen: boolean;
 
 	// Actions
-	loadMore: () => void;
 	refresh: () => void;
+	getCurrentChat: (chatId: string) => SidebarChat | undefined;
 	renameChat: (chatId: string, newTitle: string) => void;
 	toggleStar: (chatId: string) => void;
 	deleteChat: (chatId: string) => void;
@@ -32,7 +32,7 @@ interface SidebarContextValue {
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(
-	undefined,
+	undefined
 );
 
 export function useSidebar() {

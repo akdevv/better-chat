@@ -4,9 +4,12 @@ import { useSidebar } from "@/contexts/sidebar-context";
 import { ChatItem } from "./chat-item";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/shared/spinner";
+import { Button } from "@/components/ui/button";
+import { FiSearch } from "react-icons/fi";
+import Link from "next/link";
 
 export function ChatList() {
-	const { chats, isLoading, isLoadingMore, hasMore, loadMore } = useSidebar();
+	const { chats, isLoading, totalCount, ITEMS_PER_PAGE } = useSidebar();
 
 	// Separate starred and regular chats
 	const starredChats = chats.filter((chat) => chat.isStarred);
@@ -46,6 +49,18 @@ export function ChatList() {
 								))}
 							</div>
 						</>
+					)}
+
+					{/* See all chats button */}
+					{totalCount > ITEMS_PER_PAGE && (
+						<div className="w-full my-2">
+							<Link href="/recent">
+								<Button className="flex w-full cursor-pointer justify-start gap-2 text-muted-foreground hover:text-foreground bg-secondary hover:bg-primary/50">
+									<FiSearch className="h-4 w-4" />
+									All chats
+								</Button>
+							</Link>
+						</div>
 					)}
 				</ScrollArea>
 			)}

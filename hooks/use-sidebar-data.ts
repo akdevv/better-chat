@@ -1,10 +1,16 @@
 "use client";
 
 import { SidebarChat } from "@/lib/types/sidebar";
-import { useState, useCallback, useRef, useEffect, useOptimistic } from "react";
+import {
+	useState,
+	useCallback,
+	useRef,
+	useEffect,
+	useOptimistic,
+	startTransition,
+} from "react";
 
-const ITEMS_PER_PAGE = 50;
-const CACHE_DURATION = 1000 * 60 * 5; // 5 minutes
+export const ITEMS_PER_PAGE = 30;
 
 interface CacheEntry {
 	data: SidebarChat[];
@@ -15,15 +21,14 @@ interface CacheEntry {
 export function useSidebarData() {
 	const [chats, setChats] = useState<SidebarChat[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [isLoadingMore, setIsLoadingMore] = useState(false);
-	const [hasMore, setHasMore] = useState(true);
-	const [page, setPage] = useState(0);
+	const [totalCount, setTotalCount] = useState(0);
 
 	const cache = useRef<CacheEntry | null>(null);
 
 	const [optimisticChats, setOptimisticChats] = useOptimistic(
 		chats,
 		(state, update: { type: string; payload: any }) => {
+			console.log("🔄 Optimistic update:", update.type, update.payload);
 			switch (update.type) {
 				case "ADD":
 					return [update.payload, ...state].sort(
@@ -57,77 +62,132 @@ export function useSidebarData() {
 		}
 	);
 
-	// cache validation
+	// Get cached data (no expiration)
 	const getCachedData = useCallback(() => {
-		if (!cache.current) return null;
-		const isExpired = Date.now() - cache.current.timestamp > CACHE_DURATION;
-		return isExpired ? null : cache.current;
+		console.log(
+			"📦 Getting cached data:",
+			cache.current ? "Found" : "Not found"
+		);
+		return cache.current;
 	}, []);
 
-	// GET /chats => list of chats
-	const fetchChats = useCallback(
-		async (loadMore: boolean = false) => {
-			// use cache for initial load
-			if (!loadMore) {
-				const cached = getCachedData();
-				if (cached) {
-					setChats(cached.data);
-					setHasMore(cached.data.length < cached.total);
-				}
-			}
-
-			const loading = loadMore ? setIsLoadingMore : setIsLoading;
-			loading(true);
-
-			try {
-				const offset = loadMore ? page * ITEMS_PER_PAGE : 0;
-				const res = await fetch(
-					`/api/chats?limit=${ITEMS_PER_PAGE}&offset=${offset}`
-				);
-
-				if (!res.ok) {
-					throw new Error("Failed to fetch chats");
-				}
-
-				const data = await res.json();
-
-				const newChats = loadMore
-					? [...chats, ...data.chats]
-					: data.chats;
-				newChats.sort(
-					(a: SidebarChat, b: SidebarChat) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
-				);
-
-				setChats(newChats);
-				setHasMore(data.chats.length === ITEMS_PER_PAGE);
-
-				if (loadMore) {
-					setPage((prev) => prev + 1);
-				} else {
-					setPage(1);
-					// update cache
-					cache.current = {
-						data: newChats,
-						timestamp: Date.now(),
-						total: data.pagination.total,
-					};
-				}
-			} catch (error) {
-				console.error("Failed to fetch chats:", error);
-				setHasMore(false);
-			} finally {
-				loading(false);
-			}
+	// Get current chat by ID
+	const getCurrentChat = useCallback(
+		(chatId: string): SidebarChat | undefined => {
+			const chat = optimisticChats.find((chat) => chat.id === chatId);
+			console.log(
+				"🔍 Getting current chat:",
+				chatId,
+				chat ? "Found" : "Not found"
+			);
+			return chat;
 		},
-		[chats, page, getCachedData]
+		[optimisticChats]
 	);
+
+	// Invalidate cache and fetch in background
+	const invalidateCacheAndRefetch = useCallback(async () => {
+		console.log("🗑️ Invalidating cache and fetching in background");
+		cache.current = null;
+
+		// Fetch in background without loading states
+		try {
+			const res = await fetch(`/api/chats?limit=${ITEMS_PER_PAGE}`);
+			if (!res.ok) {
+				throw new Error("Failed to fetch chats in background");
+			}
+
+			const data = await res.json();
+			const newChats = data.chats;
+			newChats.sort(
+				(a: SidebarChat, b: SidebarChat) =>
+					new Date(b.updatedAt).getTime() -
+					new Date(a.updatedAt).getTime()
+			);
+
+			console.log(
+				"🔄 Background fetch completed, updating cache and state"
+			);
+
+			// Update cache
+			cache.current = {
+				data: newChats,
+				timestamp: Date.now(),
+				total: data.pagination.total,
+			};
+
+			// Update state
+			setChats(newChats);
+			setTotalCount(data.pagination.total);
+		} catch (error) {
+			console.error("❌ Background fetch failed:", error);
+		}
+	}, []);
+
+	// GET /chats => list of chats (first 30 only)
+	const fetchChats = useCallback(async () => {
+		console.log("📡 Fetching chats: Initial load");
+
+		// Use cache for initial load
+		const cached = getCachedData();
+		if (cached) {
+			console.log("✅ Using cached data, skipping API call");
+			setChats(cached.data);
+			setTotalCount(cached.total);
+			return;
+		}
+
+		setIsLoading(true);
+
+		try {
+			console.log("📡 Making API call for first 30 chats");
+
+			const res = await fetch(`/api/chats?limit=${ITEMS_PER_PAGE}`);
+
+			if (!res.ok) {
+				throw new Error("Failed to fetch chats");
+			}
+
+			const data = await res.json();
+			console.log(
+				"📡 API response received:",
+				data.chats.length,
+				"chats, total:",
+				data.pagination.total
+			);
+
+			const newChats = data.chats;
+			newChats.sort(
+				(a: SidebarChat, b: SidebarChat) =>
+					new Date(b.updatedAt).getTime() -
+					new Date(a.updatedAt).getTime()
+			);
+
+			setChats(newChats);
+			setTotalCount(data.pagination.total);
+
+			// Update cache
+			console.log("💾 Updating cache with new data");
+			cache.current = {
+				data: newChats,
+				timestamp: Date.now(),
+				total: data.pagination.total,
+			};
+		} catch (error) {
+			console.error("❌ Failed to fetch chats:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	}, [getCachedData]);
 
 	// DELETE /chats/:chatId => delete a chat
 	const deleteChat = useCallback(
 		async (chatId: string) => {
-			setOptimisticChats({ type: "DELETE", payload: chatId });
+			console.log("🗑️ Deleting chat:", chatId);
+
+			startTransition(() => {
+				setOptimisticChats({ type: "DELETE", payload: chatId });
+			});
 
 			try {
 				const res = await fetch(`/api/chats/${chatId}`, {
@@ -141,21 +201,33 @@ export function useSidebarData() {
 					throw new Error("Failed to delete chat");
 				}
 
-				// update actual state
+				console.log("✅ Chat deleted successfully");
+
+				// Update actual state
 				setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-				cache.current = null;
+				setTotalCount((prev) => Math.max(0, prev - 1));
+
+				// Invalidate cache and fetch in background
+				await invalidateCacheAndRefetch();
 			} catch (error) {
-				console.error("Failed to delete chat:", error);
+				console.error("❌ Failed to delete chat:", error);
+				// Revert optimistic update by refetching
+				fetchChats();
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[setOptimisticChats, invalidateCacheAndRefetch, fetchChats]
 	);
 
 	// PATCH /chats/:chatId => (rename chat)
 	const renameChat = useCallback(
 		async (chatId: string, newTitle: string) => {
+			console.log("✏️ Renaming chat:", chatId, "to:", newTitle);
+
 			const chat = optimisticChats.find((chat) => chat.id === chatId);
-			if (!chat) return;
+			if (!chat) {
+				console.error("❌ Chat not found for renaming:", chatId);
+				return;
+			}
 
 			const updatedChat: SidebarChat = {
 				...chat,
@@ -163,7 +235,9 @@ export function useSidebarData() {
 				updatedAt: new Date(),
 			};
 
-			setOptimisticChats({ type: "UPDATE", payload: updatedChat });
+			startTransition(() => {
+				setOptimisticChats({ type: "UPDATE", payload: updatedChat });
+			});
 
 			try {
 				const res = await fetch(`/api/chats/${chatId}`, {
@@ -178,12 +252,15 @@ export function useSidebarData() {
 					throw new Error("Failed to rename chat");
 				}
 
-				const updatedChat = await res.json();
+				const serverUpdatedChat = await res.json();
+				console.log("✅ Chat renamed successfully");
 
-				// update actual state
+				// Update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === updatedChat.id ? updatedChat : chat
+						chat.id === serverUpdatedChat.id
+							? serverUpdatedChat
+							: chat
 					);
 					return updated.sort(
 						(a, b) =>
@@ -191,19 +268,33 @@ export function useSidebarData() {
 							new Date(a.updatedAt).getTime()
 					);
 				});
-				cache.current = null;
+
+				// Invalidate cache and fetch in background
+				await invalidateCacheAndRefetch();
 			} catch (error) {
-				console.error("Failed to rename chat:", error);
+				console.error("❌ Failed to rename chat:", error);
+				// Revert optimistic update by refetching
+				fetchChats();
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[
+			optimisticChats,
+			setOptimisticChats,
+			invalidateCacheAndRefetch,
+			fetchChats,
+		]
 	);
 
 	// PATCH /chats/:chatId => (toggle star)
 	const toggleStar = useCallback(
 		async (chatId: string) => {
+			console.log("⭐ Toggling star for chat:", chatId);
+
 			const chat = optimisticChats.find((chat) => chat.id === chatId);
-			if (!chat) return;
+			if (!chat) {
+				console.error("❌ Chat not found for starring:", chatId);
+				return;
+			}
 
 			const updatedChat: SidebarChat = {
 				...chat,
@@ -211,7 +302,9 @@ export function useSidebarData() {
 				updatedAt: new Date(),
 			};
 
-			setOptimisticChats({ type: "UPDATE", payload: updatedChat });
+			startTransition(() => {
+				setOptimisticChats({ type: "UPDATE", payload: updatedChat });
+			});
 
 			try {
 				const res = await fetch(`/api/chats/${chatId}`, {
@@ -226,12 +319,15 @@ export function useSidebarData() {
 					throw new Error("Failed to toggle star");
 				}
 
-				const updatedChat = await res.json();
+				const serverUpdatedChat = await res.json();
+				console.log("✅ Chat star toggled successfully");
 
-				// update actual state
+				// Update actual state
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === updatedChat.id ? updatedChat : chat
+						chat.id === serverUpdatedChat.id
+							? serverUpdatedChat
+							: chat
 					);
 					return updated.sort(
 						(a, b) =>
@@ -239,19 +335,32 @@ export function useSidebarData() {
 							new Date(a.updatedAt).getTime()
 					);
 				});
-				cache.current = null;
+
+				// Invalidate cache and fetch in background
+				await invalidateCacheAndRefetch();
 			} catch (error) {
-				console.error("Failed to toggle star:", error);
+				console.error("❌ Failed to toggle star:", error);
+				// Revert optimistic update by refetching
+				fetchChats();
 			}
 		},
-		[optimisticChats, setOptimisticChats]
+		[
+			optimisticChats,
+			setOptimisticChats,
+			invalidateCacheAndRefetch,
+			fetchChats,
+		]
 	);
 
 	const addChat = useCallback(
 		async (newChat: SidebarChat) => {
-			setOptimisticChats({ type: "ADD", payload: newChat });
+			console.log("➕ Adding new chat:", newChat.id);
 
-			// update actual state
+			startTransition(() => {
+				setOptimisticChats({ type: "ADD", payload: newChat });
+			});
+
+			// Update actual state
 			setChats((prev) =>
 				[...prev, newChat].sort(
 					(a, b) =>
@@ -259,36 +368,42 @@ export function useSidebarData() {
 						new Date(a.updatedAt).getTime()
 				)
 			);
+			setTotalCount((prev) => prev + 1);
+
+			// Invalidate cache and fetch in background
+			await invalidateCacheAndRefetch();
 		},
-		[setOptimisticChats]
+		[setOptimisticChats, invalidateCacheAndRefetch]
 	);
 
 	const generateTitle = useCallback(
 		async (chatId: string, message: string) => {
+			console.log("🏷️ Generating title for chat:", chatId);
 			return "implement later";
 		},
 		[]
 	);
 
-	// inital load
+	// Initial load
 	useEffect(() => {
+		console.log("🚀 Initial load effect triggered");
 		fetchChats();
 	}, []);
 
 	return {
 		// Data
-		chats: optimisticChats, // optimistic updates
+		chats: optimisticChats,
 		isLoading,
-		isLoadingMore,
-		hasMore,
+		totalCount,
+		ITEMS_PER_PAGE,
 
 		// Actions
-		loadMore: () => !isLoadingMore && hasMore && fetchChats(true),
 		refresh: () => {
+			console.log("🔄 Manual refresh requested");
 			cache.current = null;
-			setPage(0);
 			fetchChats();
 		},
+		getCurrentChat,
 		renameChat,
 		toggleStar,
 		deleteChat,

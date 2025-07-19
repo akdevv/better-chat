@@ -4,10 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserChats, createChat } from "@/lib/services/chat";
 import { authenticateUser } from "@/lib/services/auth";
 
+const ITEMS_PER_PAGE = 30;
+
 // Validation schemas
 const paginationSchema = z.object({
-	limit: z.coerce.number().min(1).max(100).default(50),
-	offset: z.coerce.number().min(0).default(0),
+	limit: z.coerce.number().min(1).max(100).optional(),
 });
 
 const createChatSchema = z.object({
@@ -22,39 +23,39 @@ export async function GET(req: NextRequest) {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 },
+				{ status: 401 }
 			);
 		}
 
 		const { searchParams } = new URL(req.url);
 		const params = paginationSchema.parse({
-			limit: searchParams.get("limit") ?? 50,
-			offset: searchParams.get("offset") ?? 0,
+			limit: searchParams.get("limit"),
 		});
 
-		const result = await getUserChats(userId, params);
+		// If limit is provided, use it; otherwise get all chats
+		const limit = params.limit ?? ITEMS_PER_PAGE;
+
+		const result = await getUserChats(userId, { limit });
 
 		return NextResponse.json({
 			chats: result.chats,
 			pagination: {
-				limit: params.limit,
-				offset: params.offset,
+				limit: limit,
 				total: result.total,
-				hasMore: params.offset + result.chats.length < result.total,
 			},
 		});
 	} catch (error) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Invalid parameters", details: error.errors },
-				{ status: 400 },
+				{ status: 400 }
 			);
 		}
 
 		console.error("Error fetching chats:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch chats" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 }
@@ -66,12 +67,12 @@ export async function POST(req: NextRequest) {
 		if (!userId) {
 			return NextResponse.json(
 				{ error: "Unauthorized" },
-				{ status: 401 },
+				{ status: 401 }
 			);
 		}
 
 		const { model, initialMessage } = createChatSchema.parse(
-			await req.json(),
+			await req.json()
 		);
 
 		const chatId = await createChat(userId, {
@@ -84,14 +85,14 @@ export async function POST(req: NextRequest) {
 		if (error instanceof z.ZodError) {
 			return NextResponse.json(
 				{ error: "Invalid request body", details: error.errors },
-				{ status: 400 },
+				{ status: 400 }
 			);
 		}
 
 		console.error("Error creating chat:", error);
 		return NextResponse.json(
 			{ error: "Failed to create chat" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 }

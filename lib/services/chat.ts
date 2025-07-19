@@ -13,25 +13,21 @@ const formatChat = (chat: Chat): SidebarChat => {
 	};
 };
 
-export const getUserChats = async (
-	userId: string,
-	params: { limit: number; offset: number },
-) => {
+export const getUserChats = async (userId: string, params: { limit: number }) => {
 	try {
-		const { limit, offset } = params;
+		const { limit } = params;
 
 		const [chats, total] = await Promise.all([
 			db.chat.findMany({
 				where: { userId },
 				orderBy: { updatedAt: "desc" },
 				take: limit,
-				skip: offset,
 			}),
 			db.chat.count({ where: { userId } }),
 		]);
 
 		const formattedChats: SidebarChat[] = chats.map((chat) =>
-			formatChat(chat),
+			formatChat(chat)
 		);
 
 		return { chats: formattedChats, total };

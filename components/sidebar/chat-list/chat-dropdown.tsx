@@ -69,11 +69,9 @@ export function ChatDropdown({
 
 			try {
 				await renameChat(chat.id, newTitle);
-				toast.success("Chat renamed successfully");
 				setRenameDialogOpen(false);
 			} catch (error) {
 				console.error("Failed to rename chat:", error);
-				toast.error("Failed to rename chat. Please try again.");
 			} finally {
 				setIsRenaming(false);
 			}
@@ -86,10 +84,8 @@ export function ChatDropdown({
 
 		try {
 			await toggleStar(chat.id);
-			toast.success(chat.isStarred ? "Chat unstarred" : "Chat starred");
 		} catch (error) {
 			console.error("Failed to toggle star:", error);
-			toast.error("Failed to update star status. Please try again.");
 		} finally {
 			setIsStarring(false);
 		}

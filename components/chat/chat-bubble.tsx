@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Message } from "@/lib/types/chat";
 import { AI_MODELS } from "@/lib/ai/models";
+import { useChatContext } from "@/contexts/chat-context";
 
 import { Button } from "@/components/ui/button";
 import { PiBrain } from "react-icons/pi";
@@ -15,21 +15,13 @@ interface ContentPart {
 	content: string;
 }
 
-export function ChatBubble({
-	messages,
-	// scrollAreaRef,
-	// messagesEndRef,
-	isWaitingForResponse,
-}: {
-	messages: Message[];
-	// scrollAreaRef: React.RefObject<HTMLDivElement | null>;
-	// messagesEndRef: React.RefObject<HTMLDivElement | null>;
-	isWaitingForResponse?: boolean;
-}) {
+export function ChatBubble() {
 	const [copiedId, setCopiedId] = useState<string | null>(null);
 	const [expandedThinking, setExpandedThinking] = useState<{
 		[messageId: string]: boolean;
 	}>({});
+
+	const { chatState } = useChatContext();
 
 	const getModelName = (modelId: string) => {
 		const model = AI_MODELS.find((m) => m.id === modelId);
@@ -102,7 +94,7 @@ export function ChatBubble({
 			// ref={scrollAreaRef}
 			className="p-4 max-w-3xl mx-auto w-full min-h-full space-y-6"
 		>
-			{messages.map((message) => {
+			{chatState.messages.map((message) => {
 				const isUserMessage = message.role === "USER";
 				const isThinkingExpanded =
 					expandedThinking[message.id] || false;
@@ -196,35 +188,38 @@ export function ChatBubble({
 							</div>
 
 							{/* Model Details and Copy Button */}
-							{!isUserMessage && !isWaitingForResponse && (
-								<div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-									<span>{getModelName(message.model)}</span>
-									<Button
-										variant="ghost"
-										size="sm"
-										className="h-4 w-4 p-0 hover:bg-transparent cursor-pointer"
-										onClick={() =>
-											copyToClipboard(
-												message.content,
-												message.id
-											)
-										}
-									>
-										{copiedId === message.id ? (
-											<FiCheck className="h-2 w-2" />
-										) : (
-											<FiCopy className="h-2 w-2" />
-										)}
-									</Button>
-								</div>
-							)}
+							{!isUserMessage &&
+								!chatState.isStreamingResponse && (
+									<div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+										<span>
+											{getModelName(message.model)}
+										</span>
+										<Button
+											variant="ghost"
+											size="sm"
+											className="h-4 w-4 p-0 hover:bg-transparent cursor-pointer"
+											onClick={() =>
+												copyToClipboard(
+													message.content,
+													message.id
+												)
+											}
+										>
+											{copiedId === message.id ? (
+												<FiCheck className="h-2 w-2" />
+											) : (
+												<FiCopy className="h-2 w-2" />
+											)}
+										</Button>
+									</div>
+								)}
 						</div>
 					</div>
 				);
 			})}
 
 			{/* Loading indicator when waiting for AI response */}
-			{isWaitingForResponse && (
+			{chatState.isStreamingResponse && (
 				<div className="flex justify-start mb-6">
 					<div className="flex items-center gap-3 px-4 py-3 bg-muted/20 rounded-xl border border-border/30">
 						<PiBrain className="h-4 w-4 text-muted-foreground animate-pulse" />
