@@ -15,7 +15,6 @@ import { Spinner } from "@/components/shared/spinner";
 import { FileUploadButton } from "./file-upload-button";
 import { DragDropZone } from "./drag-drop-zone";
 import { InputFilePreview } from "./input-file-preview";
-import { formatFileSize } from "@/lib/constants/supported-files";
 
 export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 	const {
@@ -33,13 +32,11 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 
 	const {
 		attachedFiles,
-		isUploading,
 		handleFilesSelected,
 		handleRemoveFile,
 		clearFiles,
 		linkFilesToMessage,
 		getUploadedFileIds,
-		getUploadStats,
 		logAttachedFiles,
 	} = useFileUpload();
 
@@ -90,17 +87,20 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 				}
 			};
 
-			// Send the message
-			onSendMessage(e, uploadedFileIds, onFilesLinked);
+			try {
+				await onSendMessage(e, uploadedFileIds, onFilesLinked);
+				clearFiles();
+			} catch (error) {
+				console.error("Failed to send message:", error);
+			}
 		},
 		[
 			input,
+			attachedFiles,
 			getUploadedFileIds,
-			chatState.messages.length,
 			logAttachedFiles,
 			linkFilesToMessage,
-			handleCreateChat,
-			handleSendMessage,
+			onSendMessage,
 			clearFiles,
 		]
 	);
@@ -124,7 +124,6 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 	);
 
 	const hasContent = input.trim() || attachedFiles.length > 0;
-	const stats = getUploadStats();
 
 	return (
 		<DragDropZone
@@ -133,32 +132,21 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 		>
 			<div className="max-w-3xl mx-auto w-full">
 				{/* Outer container */}
-				<div className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl relative overflow-hidden border border-border/40 shadow-lg bg-card/20 backdrop-blur-md group">
+				<div className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl relative border border-border/40 shadow-lg bg-card/20 backdrop-blur-md group">
 					<AnimatedBackground />
 
 					{/* Content Container */}
 					<div className="relative z-10 bg-card/90 backdrop-blur-xl border border-border/70 rounded-lg sm:rounded-xl group-hover:backdrop-blur-2xl group-hover:bg-card transition-all duration-500">
 						<form onSubmit={handleSubmit} className="p-2 sm:p-3">
 							{/* File preview section */}
-							<div className="mb-2 sm:mb-3">
-								<InputFilePreview
-									files={attachedFiles}
-									onRemoveFile={handleRemoveFile}
-								/>
-								{/* File stats info */}
-								<div className="mb-2 text-xs text-muted-foreground">
-									{stats.total} file
-									{stats.total !== 1 ? "s" : ""} •{" "}
-									{formatFileSize(stats.totalSize)} / 64MB
-									{stats.remainingFiles < 10 && (
-										<span>
-											{" "}
-											• {stats.remainingFiles} more
-											allowed
-										</span>
-									)}
+							{attachedFiles.length > 0 && (
+								<div className="mb-2 sm:mb-3">
+									<InputFilePreview
+										files={attachedFiles}
+										onRemoveFile={handleRemoveFile}
+									/>
 								</div>
-							</div>
+							)}
 
 							{/* Input section */}
 							<div className="mb-2 sm:mb-3">

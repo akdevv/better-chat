@@ -142,7 +142,7 @@ export const AnimatedBackground = memo(() => {
 	const particles = generateFloatingParticles();
 
 	return (
-		<div className="absolute inset-0 z-0 transition-all duration-700">
+		<div className="absolute inset-0 z-0 transition-all duration-700 overflow-hidden rounded-xl">
 			{/* Base gradient */}
 			<div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/8 via-purple-500/6 to-emerald-500/8 opacity-80" />
 

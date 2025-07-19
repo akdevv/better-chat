@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { formatFileSize } from "@/lib/constants/supported-files";
+import {
+	formatFileSize,
+	getFileCategory,
+} from "@/lib/constants/supported-files";
 import { cn } from "@/lib/utils";
 import { FilePreviewItem } from "@/lib/types/file";
 
@@ -26,18 +29,40 @@ const FilePreviewCard = ({
 
 	function truncateFileName(
 		fileName: string,
-		maxLength: number = 25
+		maxLength: number = 16
 	): string {
 		if (fileName.length <= maxLength) return fileName;
 
-		const extension = fileName.substring(fileName.lastIndexOf("."));
-		const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
+		const lastDotIndex = fileName.lastIndexOf(".");
+		if (lastDotIndex === -1) {
+			return fileName.substring(0, maxLength - 3) + "...";
+		}
+
+		const extension = fileName.substring(lastDotIndex);
+		const nameWithoutExt = fileName.substring(0, lastDotIndex);
 		const availableLength = maxLength - extension.length - 3;
 
-		if (availableLength <= 0) return fileName;
+		if (availableLength <= 0) {
+			return "..." + extension;
+		}
 
 		return nameWithoutExt.substring(0, availableLength) + "..." + extension;
 	}
+
+	const getIconColor = (category: string) => {
+		switch (category) {
+			case "image":
+				return "text-blue-500/70";
+			case "code":
+				return "text-green-500/70";
+			case "document":
+				return "text-red-500/70";
+			case "data":
+				return "text-purple-500/70";
+			default:
+				return "text-slate-500/70";
+		}
+	};
 
 	const handleRemove = () => {
 		if (onRemove) {
@@ -45,72 +70,67 @@ const FilePreviewCard = ({
 		}
 	};
 
+	const fileCategory = getFileCategory(file.name, file.type);
+	const iconColor = getIconColor(fileCategory);
+
 	return (
 		<div
 			className={cn(
-				"relative group bg-muted/30 border border-border/40 rounded-lg p-3 transition-all duration-200 hover:bg-muted/40 hover:border-border/60",
-				file.status === "error" && "border-red-300 bg-red-50/20"
+				"relative group p-3 rounded-lg border transition-all duration-200",
+				"bg-muted hover:bg-muted/70",
+				file.status === "error" && "border-red-200 bg-red-50/30"
 			)}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
 		>
-			{/* Remove button - shows on hover */}
-			{isHovered && onRemove && (
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					onClick={handleRemove}
-					className="absolute -top-2 -right-2 h-5 w-5 p-0 bg-background border border-border rounded-full shadow-sm hover:bg-red-50 hover:border-red-300 z-10"
-				>
-					<X className="h-3 w-3" />
-					<span className="sr-only">Remove file</span>
-				</Button>
+			{/* Remove button */}
+			{onRemove &&
+				(file.status === "error" ||
+					(isHovered && file.status !== "uploading")) && (
+					<Button
+						type="button"
+						size="sm"
+						onClick={handleRemove}
+						className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full bg-muted text-muted-foreground border border-border hover:bg-destructive hover:text-destructive-foreground transition-colors cursor-pointer shadow-sm"
+					>
+						<X className="h-3 w-3" />
+						<span className="sr-only">Remove file</span>
+					</Button>
+				)}
+
+			{/* Loading overlay */}
+			{file.status === "uploading" && (
+				<div className="absolute inset-0 bg-background/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+					<Spinner size="sm" />
+				</div>
 			)}
 
 			<div className="flex items-start gap-3">
 				{/* File icon */}
 				<div className="flex-shrink-0 mt-0.5">
-					<div className="w-8 h-8 rounded border border-border/40 bg-background/50 flex items-center justify-center text-lg">
-						<file.icon className="h-4 w-4" />
+					<div className="w-8 h-8 rounded border border-border/30 bg-background/50 flex items-center justify-center">
+						<file.icon className={cn("h-4 w-4", iconColor)} />
 					</div>
 				</div>
-
-				{/* File info */}
-				<div className="flex-1 min-w-0">
-					<div className="flex items-center gap-2 mb-1">
-						<span
-							className="text-sm font-medium text-foreground truncate"
-							title={file.name}
-						>
-							{truncateFileName(file.name)}
-						</span>
-
-						{/* Status indicator */}
-						{file.status === "uploading" && (
-							<Spinner size="sm" color="dark" />
-						)}
+				{file.status === "error" ? (
+					<div className="mt-2 text-xs text-red-400">
+						Error uploading
 					</div>
-
-					<div className="flex items-center gap-2 text-xs text-muted-foreground">
-						<span>{formatFileSize(file.size)}</span>
-						{file.status === "uploading" &&
-							file.progress !== undefined && (
-								<span>({Math.round(file.progress)}%)</span>
-							)}
+				) : (
+					<div className="flex-1 min-w-0">
+						<div className="mb-1">
+							<span
+								className="text-sm font-medium text-foreground block truncate"
+								title={file.name}
+							>
+								{truncateFileName(file.name)}
+							</span>
+						</div>
+						<div className="text-xs text-muted-foreground">
+							{formatFileSize(file.size)}
+						</div>
 					</div>
-
-					{/* Progress bar for uploading files */}
-					{file.status === "uploading" &&
-						file.progress !== undefined && (
-							<div className="w-full bg-muted/30 rounded-full h-1 mt-2">
-								<div
-									className="bg-primary h-1 rounded-full transition-all duration-300"
-									style={{ width: `${file.progress}%` }}
-								/>
-							</div>
-						)}
-				</div>
+				)}
 			</div>
 		</div>
 	);
@@ -124,16 +144,19 @@ export const InputFilePreview = ({
 	if (files.length === 0) return null;
 
 	return (
-		<div className={className}>
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-				{files.map((file) => (
-					<FilePreviewCard
-						key={file.id}
-						file={file}
-						onRemove={onRemoveFile}
-					/>
-				))}
-			</div>
+		<div
+			className={cn(
+				"grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3",
+				className
+			)}
+		>
+			{files.map((file) => (
+				<FilePreviewCard
+					key={file.id}
+					file={file}
+					onRemove={onRemoveFile}
+				/>
+			))}
 		</div>
 	);
 };

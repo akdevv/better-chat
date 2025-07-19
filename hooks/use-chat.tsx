@@ -356,7 +356,6 @@ export function useChat() {
 
 	const onCancel = useCallback(() => {
 		setInput("");
-		setSelectedModel(DEFAULT_MODEL);
 		autoGenerateAIResponseRef.current = false;
 	}, []);
 
@@ -372,12 +371,10 @@ export function useChat() {
 					if (msg.role === "ASSISTANT" && msg.content) {
 						let finalContent = msg.content;
 
-						// Check if it's a thinking response with incomplete tags
 						if (
 							finalContent.includes("<think>") &&
 							!finalContent.includes("</think>")
 						) {
-							// Add closing think tag
 							finalContent += "</think>";
 						}
 
