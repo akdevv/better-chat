@@ -9,11 +9,32 @@ export interface FileTypeInfo {
 
 export interface FilePreviewItem {
 	id: string;
+	file: File;
 	name: string;
 	size: number;
 	type: string;
 	icon: React.ElementType;
-	file: File;
 	status: "pending" | "uploading" | "uploaded" | "error";
 	progress?: number;
+	uploadData?: {
+		id: string;
+		key: string;
+		url: string;
+	};
+	error?: string;
+}
+
+export interface UploadThingFileResult {
+	success: boolean;
+	fileName: string;
+	mimeType: string;
+	size: number;
+	fileGroup: "image" | "pdf" | "text" | "code";
+	data: {
+		id: string;
+		uploadThingKey: string;
+		uploadThingUrl: string;
+		originalName: string;
+	};
+	error?: string;
 }

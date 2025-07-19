@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMessages, sendMessage } from "@/lib/services/message";
+import {
+	getMessages,
+	sendMessage,
+	savePartialMessage,
+} from "@/lib/services/message";
 import { authenticateUser } from "@/lib/services/auth";
+import { db } from "@/lib/prisma";
 
 // GET /chats/:chatId/messages => get all messages for a chat
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } },
+	{ params }: { params: { chatId: string } }
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -24,7 +29,7 @@ export async function GET(
 		console.error("Error fetching messages:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch messages" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 }
@@ -32,7 +37,7 @@ export async function GET(
 // POST /api/chats/:chatId/messages - Send message & get AI response
 export async function POST(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } },
+	{ params }: { params: { chatId: string } }
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -42,14 +47,37 @@ export async function POST(
 
 		const { chatId } = await params;
 
-		const { message, model } = await req.json();
+		const { message, model, generateAIResponse = true } = await req.json();
 		if (!message.trim() || !model) {
 			return NextResponse.json(
 				{ error: "Message and model are required" },
-				{ status: 400 },
+				{ status: 400 }
 			);
 		}
 
+		// If generateAIResponse is false, just create the user message and return JSON
+		if (!generateAIResponse) {
+			// Create user message only
+			const userMessage = await db.message.create({
+				data: {
+					chatId,
+					role: "USER",
+					content: message.trim(),
+					model,
+				},
+			});
+
+			return NextResponse.json({
+				id: userMessage.id,
+				chatId: userMessage.chatId,
+				role: userMessage.role,
+				content: userMessage.content,
+				createdAt: userMessage.createdAt,
+				model: userMessage.model,
+			});
+		}
+
+		// Generate AI response (existing behavior)
 		const abortController = new AbortController();
 		if (req.signal) {
 			req.signal.addEventListener("abort", () => {
@@ -62,7 +90,7 @@ export async function POST(
 			userId!,
 			message,
 			model,
-			abortController.signal,
+			abortController.signal
 		);
 		if (result.error) {
 			return NextResponse.json({ error: result.error }, { status: 500 });
@@ -78,7 +106,7 @@ export async function POST(
 		console.error("Error sending message:", error);
 		return NextResponse.json(
 			{ error: "Failed to send message" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 }
@@ -86,10 +114,10 @@ export async function POST(
 // PATCH /api/chats/:chatId/messages - Save partial message when stopped
 export async function PATCH(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } },
+	{ params }: { params: { chatId: string } }
 ) {
 	try {
-		const { error, userId } = await authenticateUser();
+		const { error } = await authenticateUser();
 		if (error) {
 			return NextResponse.json({ error }, { status: 401 });
 		}
@@ -100,41 +128,21 @@ export async function PATCH(
 		if (!content || !model) {
 			return NextResponse.json(
 				{ error: "Content and model are required" },
-				{ status: 400 },
+				{ status: 400 }
 			);
 		}
 
-		// Process thinking response content
-		let finalContent = content;
-		if (finalContent.includes("<think>") && !finalContent.includes("</think>")) {
-			finalContent += "</think>";
+		const result = await savePartialMessage(chatId, content, model);
+		if (result.error) {
+			return NextResponse.json({ error: result.error }, { status: 500 });
 		}
-
-		// Import db here to avoid circular dependency
-		const { db } = await import("@/lib/prisma");
-		
-		// Save the partial message to database
-		await db.message.create({
-			data: {
-				chatId,
-				role: "ASSISTANT",
-				content: finalContent,
-				model,
-			},
-		});
-
-		// Update chat timestamp
-		await db.chat.update({
-			where: { id: chatId },
-			data: { updatedAt: new Date() },
-		});
 
 		return NextResponse.json({ success: true });
 	} catch (error) {
 		console.error("Error saving partial message:", error);
 		return NextResponse.json(
 			{ error: "Failed to save partial message" },
-			{ status: 500 },
+			{ status: 500 }
 		);
 	}
 }

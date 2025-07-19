@@ -49,6 +49,7 @@ model User {
   chats         Chat[]
   sessions      Session[]
   userSettings  UserSettings?
+  uploadedFiles UploadedFile[]
 }
 
 model VerificationToken {
@@ -75,56 +76,44 @@ model Chat {
 }
 
 model Message {
-  id            String         @id @default(cuid())
-  chatId        String
-  role          Role           @default(USER)
-  content       String
-  createdAt     DateTime       @default(now())
-  model         String?
-  chat          Chat           @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  messageFiles  MessageFile[]
-  messageImages MessageImage[]
+  id           String        @id @default(cuid())
+  chatId       String
+  role         Role          @default(USER)
+  content      String
+  createdAt    DateTime      @default(now())
+  model        String?
+  chat         Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  messageFiles MessageFile[]
 
   @@index([chatId])
 }
 
-model UploadedImage {
-  id             String         @id @default(cuid())
+model UploadedFile {
+  id             String        @id @default(cuid())
   userId         String
   originalName   String
   mimeType       String
   size           Int
-  uploadThingKey String         @unique
+  fileGroup      FileGroup
+  uploadThingKey String        @unique
   uploadThingUrl String
-  createdAt      DateTime       @default(now())
-  messageImages  MessageImage[]
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageFiles   MessageFile[]
 
   @@index([userId])
   @@index([uploadThingKey])
-}
-
-model MessageImage {
-  id              String        @id @default(cuid())
-  messageId       String
-  uploadedImageId String
-  message         Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  uploadedImage   UploadedImage @relation(fields: [uploadedImageId], references: [id], onDelete: Cascade)
-
-  @@unique([messageId, uploadedImageId])
-  @@index([messageId])
+  @@index([fileGroup])
 }
 
 model MessageFile {
-  id            String       @id @default(cuid())
-  messageId     String
-  fileName      String
-  mimeType      String
-  size          Int
-  fileCategory  FileCategory
-  parsedContent String?
-  metadata      Json?
-  message       Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  id             String       @id @default(cuid())
+  messageId      String
+  uploadedFileId String
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedFile   UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
 
+  @@unique([messageId, uploadedFileId])
   @@index([messageId])
 }
 
@@ -162,8 +151,9 @@ enum Role {
   SYSTEM
 }
 
-enum FileCategory {
-  document
-  code
-  data
+enum FileGroup {
+  IMAGE
+  PDF
+  TEXT
+  CODE
 }

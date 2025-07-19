@@ -23,7 +23,7 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 		],
 		category: "image",
 		icon: FaRegFileImage,
-		maxSize: 20 * 1024 * 1024, // 20MB
+		maxSize: 16 * 1024 * 1024, // 16MB
 		description: "Image files",
 	},
 
@@ -33,7 +33,7 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 		mimeTypes: ["application/pdf"],
 		category: "document",
 		icon: FaRegFilePdf,
-		maxSize: 50 * 1024 * 1024, // 50MB
+		maxSize: 32 * 1024 * 1024, // 32MB
 		description: "PDF documents",
 	},
 
@@ -45,7 +45,7 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 		],
 		category: "document",
 		icon: FaRegFileWord,
-		maxSize: 50 * 1024 * 1024, // 50MB
+		maxSize: 32 * 1024 * 1024, // 32MB
 		description: "Word documents",
 	},
 
@@ -59,7 +59,7 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 		],
 		category: "data",
 		icon: FaRegFileExcel,
-		maxSize: 25 * 1024 * 1024, // 25MB
+		maxSize: 16 * 1024 * 1024, // 16MB
 		description: "Spreadsheet files",
 	},
 
@@ -68,7 +68,7 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 		mimeTypes: ["text/plain", "text/markdown", "text/rtf"],
 		category: "document",
 		icon: FaRegFileAlt,
-		maxSize: 10 * 1024 * 1024, // 10MB
+		maxSize: 8 * 1024 * 1024, // 8MB
 		description: "Text files",
 	},
 
@@ -188,6 +188,13 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 			".gradle",
 			".sbt",
 			".pom",
+			// database
+			".sql",
+			".sqlite",
+			".sqlite3",
+			".db",
+			".mdb",
+			".accdb",
 		],
 		mimeTypes: [
 			"text/javascript",
@@ -215,33 +222,21 @@ export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 			"text/x-shellscript",
 			"application/x-bat",
 			"text/markdown",
-		],
-		category: "code",
-		icon: FaRegFileCode,
-		maxSize: 5 * 1024 * 1024, // 5MB
-		description: "Code files",
-	},
-
-	// Database files
-	database: {
-		extensions: [".sql", ".sqlite", ".sqlite3", ".db", ".mdb", ".accdb"],
-		mimeTypes: [
 			"application/sql",
 			"application/x-sqlite3",
 			"application/x-msaccess",
 		],
-		category: "data",
-		icon: TbFileDatabase,
-		maxSize: 10 * 1024 * 1024, // 10MB
-		description: "Database files",
+		category: "code",
+		icon: FaRegFileCode,
+		maxSize: 4 * 1024 * 1024, // 4MB
+		description: "Code files",
 	},
 };
 
-// File upload constraints
-export const FILE_UPLOAD_LIMITS = {
-	MAX_FILES: 10,
-	MAX_TOTAL_SIZE: 100 * 1024 * 1024, // 100MB total per message
-	ALLOWED_CATEGORIES: ["image", "document", "code", "data"] as const,
+export const FILE_LIMITS = {
+	MAX_FILE_SIZE: 32 * 1024 * 1024, // 32MB
+	MAX_TOTAL_SIZE: 64 * 1024 * 1024, // 64MB
+	MAX_FILE_COUNT: 10, // max 10 per message
 };
 
 // Helper functions

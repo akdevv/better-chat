@@ -8,6 +8,12 @@ export type Chat = {
 	messages?: Message[];
 };
 
+export interface MessageFile {
+	id: string;
+	name: string;
+	fileGroup: string;
+}
+
 export type Message = {
 	id: string;
 	chatId: string;
@@ -15,6 +21,7 @@ export type Message = {
 	content: string;
 	createdAt: Date;
 	model: string;
+	files?: MessageFile[];
 };
 
 export interface ChatState {

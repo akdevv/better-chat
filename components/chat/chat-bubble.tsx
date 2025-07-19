@@ -6,7 +6,13 @@ import { AI_MODELS } from "@/lib/ai/models";
 
 import { Button } from "@/components/ui/button";
 import { PiBrain } from "react-icons/pi";
-import { FiCopy, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import {
+	FiCopy,
+	FiCheck,
+	FiChevronDown,
+	FiChevronUp,
+	FiPaperclip,
+} from "react-icons/fi";
 import { MarkdownRenderer } from "@/components/chat/markdown-renderer";
 
 interface ContentPart {
@@ -96,6 +102,21 @@ export function ChatBubble({
 		}));
 	};
 
+	const truncateFileName = (
+		fileName: string,
+		maxLength: number = 30
+	): string => {
+		if (fileName.length <= maxLength) return fileName;
+
+		const extension = fileName.substring(fileName.lastIndexOf("."));
+		const nameWithoutExt = fileName.substring(0, fileName.lastIndexOf("."));
+		const availableLength = maxLength - extension.length - 3; // 3 for "..."
+
+		if (availableLength <= 0) return fileName;
+
+		return nameWithoutExt.substring(0, availableLength) + "..." + extension;
+	};
+
 	return (
 		<div
 			// ref={scrollAreaRef}
@@ -105,6 +126,7 @@ export function ChatBubble({
 				const isUserMessage = message.role === "USER";
 				const isThinkingExpanded =
 					expandedThinking[message.id] || false;
+				const hasFiles = message.files && message.files.length > 0;
 
 				return (
 					<div
@@ -120,6 +142,26 @@ export function ChatBubble({
 									: "w-full"
 							}`}
 						>
+							{/* Attached Files (for user messages) */}
+							{isUserMessage && hasFiles && (
+								<div className="mb-2 flex flex-wrap gap-1 max-w-full">
+									{message.files!.map((file) => (
+										<div
+											key={file.id}
+											className="flex items-center gap-1.5 px-2 py-1 bg-muted/30 rounded-md text-xs"
+										>
+											<FiPaperclip className="h-3 w-3 text-muted-foreground/70" />
+											<span
+												className="text-muted-foreground/80 truncate max-w-[150px]"
+												title={file.name}
+											>
+												{truncateFileName(file.name)}
+											</span>
+										</div>
+									))}
+								</div>
+							)}
+
 							{/* Message Content */}
 							<div
 								className={`${
@@ -142,7 +184,7 @@ export function ChatBubble({
 																<button
 																	onClick={() =>
 																		toggleThinking(
-																			message.id,
+																			message.id
 																		)
 																	}
 																	className="group w-full flex items-center justify-between p-3 bg-muted/15 hover:bg-muted/25 transition-all duration-200 rounded-lg border border-transparent hover:border-muted/30"
@@ -181,7 +223,7 @@ export function ChatBubble({
 															/>
 														)}
 													</div>
-												),
+												)
 											)}
 										</div>
 									)}
@@ -199,7 +241,7 @@ export function ChatBubble({
 										onClick={() =>
 											copyToClipboard(
 												message.content,
-												message.id,
+												message.id
 											)
 										}
 									>
