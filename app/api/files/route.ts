@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateUser } from "@/lib/services/auth";
-import { uploadFile } from "@/lib/services/file-processor";
+import { uploadFile } from "@/lib/services/file";
 
 // POST /api/files - Upload files to UploadThing and save to database
 export async function POST(req: NextRequest) {

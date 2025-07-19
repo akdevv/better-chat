@@ -40,7 +40,7 @@ export const ourFileRouter = {
 				key: file.key,
 				name: file.name,
 				size: file.size,
-				url: file.url,
+				url: file.ufsUrl,
 				type: file.type,
 			});
 			console.log("============================");
@@ -50,7 +50,7 @@ export const ourFileRouter = {
 				fileName: file.name,
 				fileSize: file.size,
 				fileKey: file.key,
-				fileUrl: file.url,
+				fileUrl: file.ufsUrl,
 			};
 		}),
 } satisfies FileRouter;

@@ -9,6 +9,8 @@ export interface AIModel {
 	contextWindow: number;
 	maxOutputTokens: number;
 	maxMessageLength: number;
+	supportsVision: boolean;
+	supportsThinking: boolean;
 }
 
 export const AI_MODELS: AIModel[] = [
@@ -18,9 +20,11 @@ export const AI_MODELS: AIModel[] = [
 		name: "DeepSeek R1",
 		provider: "groq",
 		isFree: true,
-		contextWindow: 128000, // 128K context window
+		contextWindow: 128000,
 		maxOutputTokens: 8192,
 		maxMessageLength: 32000,
+		supportsVision: false,
+		supportsThinking: true,
 	},
 	{
 		id: "meta-llama/llama-4-maverick-17b-128e-instruct",
@@ -31,6 +35,8 @@ export const AI_MODELS: AIModel[] = [
 		contextWindow: 128000,
 		maxOutputTokens: 8192,
 		maxMessageLength: 32000,
+		supportsVision: false,
+		supportsThinking: false,
 	},
 
 	// Anthropic models (Paid)
@@ -39,18 +45,22 @@ export const AI_MODELS: AIModel[] = [
 		name: "Claude Opus 4",
 		provider: "anthropic",
 		isFree: false,
-		contextWindow: 200000, // 200K context window
-		maxOutputTokens: 32000, // 32K max output
+		contextWindow: 200000,
+		maxOutputTokens: 32000,
 		maxMessageLength: 50000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 	{
 		id: "claude-sonnet-4-20250514",
 		name: "Claude Sonnet 4",
 		provider: "anthropic",
 		isFree: false,
-		contextWindow: 200000, // 200K context window
-		maxOutputTokens: 64000, // 64K max output
+		contextWindow: 200000,
+		maxOutputTokens: 64000,
 		maxMessageLength: 50000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 
 	// Google models (Paid)
@@ -60,9 +70,11 @@ export const AI_MODELS: AIModel[] = [
 		provider: "google",
 		isFree: false,
 		isNew: true,
-		contextWindow: 1000000, // 1M context window
-		maxOutputTokens: 64000, // 64K max output
+		contextWindow: 1000000,
+		maxOutputTokens: 64000,
 		maxMessageLength: 200000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 	{
 		id: "gemini-2.5-flash",
@@ -70,9 +82,11 @@ export const AI_MODELS: AIModel[] = [
 		provider: "google",
 		isFree: false,
 		isNew: true,
-		contextWindow: 1000000, // 1M context window
-		maxOutputTokens: 64000, // 64K max output
+		contextWindow: 1000000,
+		maxOutputTokens: 64000,
 		maxMessageLength: 200000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 
 	// OpenAI models (Paid)
@@ -81,18 +95,22 @@ export const AI_MODELS: AIModel[] = [
 		name: "GPT-4o",
 		provider: "openai",
 		isFree: false,
-		contextWindow: 128000, // 128K context window
-		maxOutputTokens: 16384, // 16K max output
+		contextWindow: 128000,
+		maxOutputTokens: 16384,
 		maxMessageLength: 32000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 	{
 		id: "gpt-4o-mini",
 		name: "GPT-4o Mini",
 		provider: "openai",
 		isFree: false,
-		contextWindow: 128000, // 128K context window
-		maxOutputTokens: 16384, // 16K max output
+		contextWindow: 128000,
+		maxOutputTokens: 16384,
 		maxMessageLength: 32000,
+		supportsVision: true,
+		supportsThinking: false,
 	},
 ];
 
@@ -112,3 +130,21 @@ export function groupModelsByProvider(): Record<ModelProvider, AIModel[]> {
 		return acc;
 	}, {} as Record<ModelProvider, AIModel[]>);
 }
+
+export const getVisionCapableModels = () => {
+	return AI_MODELS.filter((model) => model.supportsVision);
+};
+
+export const getThinkingCapableModels = () => {
+	return AI_MODELS.filter((model) => model.supportsThinking);
+};
+
+export const modelSupportsVision = (modelId: string): boolean => {
+	const model = getModelById(modelId);
+	return model?.supportsVision ?? false;
+};
+
+export const modelSupportsThinking = (modelId: string): boolean => {
+	const model = getModelById(modelId);
+	return model?.supportsThinking ?? false;
+};

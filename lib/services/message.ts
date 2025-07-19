@@ -48,8 +48,12 @@ export const sendMessage = async (
 	userId: string,
 	message: string,
 	model: string,
+	fileIds: string[] = [],
+	temperature: number,
+	maxTokens: number,
 	signal?: AbortSignal
 ) => {
+	console.log("sendMessage, fileIds", fileIds);
 	try {
 		if (signal?.aborted) {
 			return { error: "Request was cancelled" };
@@ -58,7 +62,15 @@ export const sendMessage = async (
 		const chat = await db.chat.findUnique({
 			where: { id: chatId, userId },
 			include: {
-				messages: true,
+				messages: {
+					include: {
+						messageFiles: {
+							include: {
+								uploadedFile: true,
+							},
+						},
+					},
+				},
 			},
 		});
 		if (!chat) {
@@ -92,7 +104,7 @@ export const sendMessage = async (
 			message,
 			model,
 			userId,
-			{ signal }
+			{ signal, fileIds, temperature, maxTokens }
 		);
 		let completeResponse = "";
 

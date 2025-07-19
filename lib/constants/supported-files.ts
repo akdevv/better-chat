@@ -7,7 +7,6 @@ import {
 	FaRegFileAlt,
 	FaRegFileCode,
 } from "react-icons/fa";
-import { TbFileDatabase } from "react-icons/tb";
 
 export const SUPPORTED_FILE_TYPES: Record<string, FileTypeInfo> = {
 	// Images
@@ -277,6 +276,31 @@ export function getFileTypeInfo(
 	}
 
 	return null;
+}
+
+export function getFileCategory(
+	fileName: string,
+	mimeType?: string
+): "image" | "document" | "code" | "data" {
+	const extension = fileName
+		.toLowerCase()
+		.substring(fileName.lastIndexOf("."));
+
+	for (const type of Object.values(SUPPORTED_FILE_TYPES)) {
+		if (type.extensions.includes(extension)) {
+			return type.category;
+		}
+	}
+
+	if (mimeType) {
+		for (const type of Object.values(SUPPORTED_FILE_TYPES)) {
+			if (type.mimeTypes.includes(mimeType)) {
+				return type.category;
+			}
+		}
+	}
+
+	return "code";
 }
 
 export function validateFile(file: File): { valid: boolean; error?: string } {

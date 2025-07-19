@@ -1,8 +1,9 @@
 import { db } from "@/lib/prisma";
 import { decrypt } from "@/lib/encryption";
-import { Message } from "@/lib/types/chat";
 import { AIError, AIMessage } from "@/lib/types/ai";
 import { AIModel, getModelById, ModelProvider } from "./models";
+import { fetchFileContent, generateFileContextPrompt } from "./file-prompts";
+import { FileData } from "@/lib/types/file";
 
 import { createGroqStream } from "./providers/gorq";
 import { createOpenAIStream } from "./providers/openai";
@@ -94,7 +95,8 @@ const countTokens = (message: string) => {
 const validateChatInput = (
 	model: AIModel,
 	currentMessage: string,
-	messages: AIMessage[] = []
+	messages: AIMessage[] = [],
+	files: FileData[] = []
 ) => {
 	if (currentMessage.length > model.maxMessageLength) {
 		const error = new Error("Your message is too long.") as AIError;
@@ -117,20 +119,85 @@ const validateChatInput = (
 	}
 };
 
+// Get file data from database with content
+const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
+	console.log("getFilesData, fileIds", fileIds);
+	if (fileIds.length === 0) return [];
+
+	try {
+		const files = await db.uploadedFile.findMany({
+			where: { id: { in: fileIds } },
+			select: {
+				id: true,
+				originalName: true,
+				mimeType: true,
+				size: true,
+				uploadThingUrl: true,
+			},
+		});
+
+		console.log("files in getFilesData from db", files);
+
+		// Fetch file content for each file
+		const filesWithContent = await Promise.all(
+			files.map(async (file) => {
+				const content = await fetchFileContent(
+					file.uploadThingUrl,
+					file.mimeType,
+					file.size
+				);
+
+				return {
+					id: file.id,
+					name: file.originalName,
+					type: file.mimeType,
+					size: file.size,
+					url: file.uploadThingUrl,
+					content: content,
+				} as FileData;
+			})
+		);
+
+		console.log("filesWithContent in getFilesData", filesWithContent);
+
+		return filesWithContent;
+	} catch (error) {
+		console.error("Error fetching file data:", error);
+		return [];
+	}
+};
+
 // Preprocess messages with context
-const prepareMessages = (
+const prepareMessages = async (
 	model: AIModel,
 	messages: AIMessage[],
-	currentMessage: string
-): AIMessage[] => {
-	validateChatInput(model, currentMessage, messages);
+	currentMessage: string,
+	fileIds: string[] = []
+): Promise<AIMessage[]> => {
+	console.log("prepareMessages, fileIds", fileIds);
+	const files = await getFilesData(fileIds);
+
+	validateChatInput(model, currentMessage, messages, files);
 	console.log("messages", messages);
 	console.log("currentMessage", currentMessage);
 	console.log("model", model);
+	console.log("files", files);
+
+	// Generate file context prompt if files are attached
+	const fileContextPrompt =
+		files.length > 0 ? generateFileContextPrompt(files) : "";
 
 	// No history, just add current message
 	if (messages.length === 1) {
-		return [{ role: "USER", content: currentMessage }];
+		const finalMessages: AIMessage[] = [];
+
+		// Add file context as system message if files are present
+		if (fileContextPrompt) {
+			finalMessages.push({ role: "SYSTEM", content: fileContextPrompt });
+		}
+
+		finalMessages.push({ role: "USER", content: currentMessage });
+		return finalMessages;
 	}
 
 	// Separate out system messages
@@ -145,6 +212,11 @@ const prepareMessages = (
 		(acc, msg) => acc + countTokens(msg.content),
 		0
 	);
+
+	// Add file context tokens if present
+	if (fileContextPrompt) {
+		totalTokens += countTokens(fileContextPrompt);
+	}
 
 	const trimmedMessages: AIMessage[] = [];
 	const maxTokens = Math.floor(model.contextWindow * 0.8); // Reserve 20% for response
@@ -163,9 +235,9 @@ const prepareMessages = (
 	}
 
 	// Create context aware prompt
-	const contextPrompt =
-		trimmedMessages.length > 0
-			? `Previous conversation history for context:
+	let contextPrompt = "";
+	if (trimmedMessages.length > 0) {
+		contextPrompt = `Previous conversation history for context:
 
 ${trimmedMessages
 	.map(
@@ -175,11 +247,48 @@ ${trimmedMessages
 
 ---
 
-Current message (please respond to this):
-${currentMessage}`
-			: currentMessage;
+`;
+	}
 
-	return [...systemMessages, { role: "USER", content: contextPrompt }];
+	// Add file content to the current message if files are attached
+	if (files.length > 0) {
+		contextPrompt += `Attached files:\n`;
+		files.forEach((file, index) => {
+			contextPrompt += `\nFile ${index + 1}: ${file.name} (${
+				file.type
+			})\n`;
+			if (file.content) {
+				if (
+					file.content.startsWith("[IMAGE:") ||
+					file.content.startsWith("[FILE:")
+				) {
+					contextPrompt += `${file.content}\n`;
+				} else {
+					contextPrompt += `Content:\n\`\`\`\n${file.content}\n\`\`\`\n`;
+				}
+			} else {
+				contextPrompt += `[Content could not be loaded]\n`;
+			}
+		});
+		contextPrompt += `\n---\n\n`;
+	}
+
+	contextPrompt += `Current message (please respond to this):\n${currentMessage}`;
+
+	const finalMessages: AIMessage[] = [];
+
+	// Add existing system messages
+	finalMessages.push(...systemMessages);
+
+	// Add file context as system message if files are present
+	if (fileContextPrompt) {
+		finalMessages.push({ role: "SYSTEM", content: fileContextPrompt });
+	}
+
+	// Add user message with context and files
+	finalMessages.push({ role: "USER", content: contextPrompt });
+
+	return finalMessages;
 };
 
 // MAIN FUNCTIONS
@@ -187,14 +296,21 @@ export const sendMessageToAI = async (
 	message: string,
 	modelId: string,
 	userId: string,
-	signal?: AbortSignal
+	options: {
+		fileIds?: string[];
+		signal?: AbortSignal;
+	}
 ): Promise<ReadableStream<Uint8Array>> => {
+	const { fileIds = [], signal } = options;
+
+	console.log("sendMessageToAI, fileIds", fileIds);
+
 	const model = getModelById(modelId);
 	if (!model) throw new Error(`Model ${modelId} not found`);
 
 	const apiKey = await verifyApiKey(modelId, userId);
 
-	const finalMessages = prepareMessages(model, [], message);
+	const finalMessages = await prepareMessages(model, [], message, fileIds);
 
 	const stream = getStreamFunction(model.provider);
 	return stream({
@@ -213,21 +329,35 @@ export const sendMessageToAIWithHistory = async (
 	options: {
 		temperature?: number;
 		maxTokens?: number;
+		fileIds?: string[];
 		signal?: AbortSignal;
 	} = {}
 ): Promise<ReadableStream<Uint8Array>> => {
+	const { temperature, maxTokens, fileIds = [], signal } = options;
+
+	console.log("sendMessageToAIWithHistory, fileIds", fileIds);
+
 	const model = getModelById(modelId);
 	if (!model) throw new Error(`Model ${modelId} not found`);
 
 	const apiKey = await verifyApiKey(modelId, userId);
 
-	const finalMessages = prepareMessages(model, messages, currentMessage);
+	const finalMessages = await prepareMessages(
+		model,
+		messages,
+		currentMessage,
+		fileIds
+	);
+
+	console.log("finalMessages in model-router", finalMessages);
 
 	const stream = getStreamFunction(model.provider);
 	return stream({
 		messages: finalMessages,
 		model: modelId,
 		apiKey,
-		...options,
+		temperature,
+		maxTokens,
+		signal,
 	});
 };

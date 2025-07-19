@@ -200,8 +200,7 @@ export const useFileUpload = () => {
 			});
 
 			const uploadResults = await Promise.all(uploadPromises);
-			console.log("Upload results:", uploadResults);
-
+			
 			// Update file states with results
 			uploadResults.forEach((result) => {
 				setAttachedFiles((prev) =>
@@ -290,6 +289,11 @@ export const useFileUpload = () => {
 				);
 				const uploadedFileIds = uploadedFiles.map(
 					(f) => f.uploadData!.id
+				);
+
+				console.log(
+					"Sending req to:",
+					`/api/chats/${chatId}/messages/${messageId}`
 				);
 
 				// Link files to message via API

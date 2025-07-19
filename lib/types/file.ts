@@ -38,3 +38,19 @@ export interface UploadThingFileResult {
 	};
 	error?: string;
 }
+
+export interface FileData {
+	id: string;
+	name: string;
+	type: string;
+	size: number;
+	content?: string;
+	url?: string;
+}
+
+export enum FileCategory {
+	IMAGE = "image",
+	DOCUMENT = "document",
+	CODE = "code",
+	DATA = "data",
+}

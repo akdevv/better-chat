@@ -49,10 +49,13 @@ export function useChat() {
 				!autoGenerateAIResponseRef.current
 			) {
 				autoGenerateAIResponseRef.current = true;
+				const fileIds =
+					data[0].files?.map((file: any) => file.id) || [];
 				generateAIResponse(
 					chatId as string,
 					data[0].content,
-					selectedModel
+					selectedModel,
+					fileIds
 				);
 			}
 		} catch (error) {
@@ -101,6 +104,8 @@ export function useChat() {
 				) {
 					console.log("→ Linking files to new chat message...");
 					try {
+						console.log("useChat handleCreateChat onFilesLinked");
+						console.log("data", data);
 						await onFilesLinked(data.chatId, data.messageId);
 					} catch (error) {
 						console.error("Failed to link files:", error);
@@ -161,6 +166,7 @@ export function useChat() {
 							message: trimmedInput || "📎 Files attached",
 							model: selectedModel,
 							generateAIResponse: false, // Only create user message
+							fileIds: uploadedFileIds || [],
 						}),
 					}
 				);
@@ -192,6 +198,9 @@ export function useChat() {
 				if (hasFiles && onFilesLinked) {
 					console.log("→ Starting file upload...");
 					try {
+						console.log("useChat handleSendMessage onFilesLinked");
+						console.log("chatId", chatId);
+						console.log("createdMessage.id", createdMessage.id);
 						await onFilesLinked(
 							chatId as string,
 							createdMessage.id
@@ -216,7 +225,8 @@ export function useChat() {
 				await generateAIResponse(
 					chatId as string,
 					trimmedInput || "Files attached",
-					selectedModel
+					selectedModel,
+					uploadedFileIds
 				);
 			} catch (error) {
 				console.error("Error sending message:", error);
@@ -234,7 +244,12 @@ export function useChat() {
 	);
 
 	const generateAIResponse = useCallback(
-		async (chatId: string, message: string, model: string) => {
+		async (
+			chatId: string,
+			message: string,
+			model: string,
+			uploadedFileIds?: string[]
+		) => {
 			if (!chatId) return;
 			setChatState((prev) => ({ ...prev, isStreamingResponse: true }));
 
@@ -263,6 +278,7 @@ export function useChat() {
 						message,
 						model,
 						generateAIResponse: true, // Generate AI response
+						fileIds: uploadedFileIds || [],
 					}),
 					signal: abortControllerRef.current?.signal,
 				});

@@ -47,7 +47,18 @@ export async function POST(
 
 		const { chatId } = await params;
 
-		const { message, model, generateAIResponse = true } = await req.json();
+		const {
+			message,
+			model,
+			generateAIResponse = false,
+			fileIds = [],
+			temperature,
+			maxTokens,
+		} = await req.json();
+		console.log(
+			"fileIds in route POST /api/chats/:chatId/messages",
+			fileIds
+		);
 		if (!message.trim() || !model) {
 			return NextResponse.json(
 				{ error: "Message and model are required" },
@@ -90,6 +101,9 @@ export async function POST(
 			userId!,
 			message,
 			model,
+			fileIds,
+			temperature,
+			maxTokens,
 			abortController.signal
 		);
 		if (result.error) {
