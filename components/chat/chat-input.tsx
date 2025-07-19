@@ -1,6 +1,10 @@
 "use client";
 
 import { useRef, useEffect, useCallback, memo } from "react";
+import { useChatContext } from "@/contexts/chat-context";
+import { useFileUpload } from "@/hooks/use-file-upload";
+import { usePathname } from "next/navigation";
+
 import { Button } from "@/components/ui/button";
 import { FaArrowUpLong } from "react-icons/fa6";
 import { FaRegCircleStop } from "react-icons/fa6";
@@ -8,69 +12,142 @@ import { ModelSelector } from "./model-selector";
 import { AnimatedBackground } from "./animated-bg";
 import { Spinner } from "@/components/shared/spinner";
 
-import { useChatContext } from "@/contexts/chat-context";
+import { FileUploadButton } from "./file-upload-button";
+import { DragDropZone } from "./drag-drop-zone";
+import { InputFilePreview } from "./input-file-preview";
 
-export const ChatInput = memo(
-	({
-		onSendMessage,
-		maxHeight = 120,
-	}: {
-		onSendMessage: (e: React.FormEvent) => void;
-		maxHeight?: number;
-	}) => {
-		const {
+export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
+	const {
+		input,
+		selectedModel,
+		isCreatingChat,
+		chatState,
+		setInput,
+		setSelectedModel,
+		handleCreateChat,
+		handleSendMessage,
+		onCancel,
+		onStop,
+	} = useChatContext();
+
+	const {
+		attachedFiles,
+		handleFilesSelected,
+		handleRemoveFile,
+		clearFiles,
+		linkFilesToMessage,
+		getUploadedFileIds,
+		logAttachedFiles,
+	} = useFileUpload();
+
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+	const pathname = usePathname();
+
+	// Determine which send handler to use based on route
+	const isChatIdPage = /^\/chat\/[^/]+$/.test(pathname || "");
+	const onSendMessage = isChatIdPage ? handleSendMessage : handleCreateChat;
+
+	// Auto-resize textarea
+	const adjustTextareaHeight = useCallback(() => {
+		const textarea = textareaRef.current;
+		if (!textarea) return;
+
+		textarea.style.height = "auto";
+		const newHeight = Math.min(textarea.scrollHeight, maxHeight);
+		textarea.style.height = `${newHeight}px`;
+	}, []);
+
+	useEffect(() => {
+		adjustTextareaHeight();
+	}, [input, adjustTextareaHeight]);
+
+	const handleSubmit = useCallback(
+		async (e: React.FormEvent) => {
+			e.preventDefault();
+
+			const hasContent = input.trim() || attachedFiles.length > 0;
+			const uploadedFileIds = getUploadedFileIds();
+
+			if (!hasContent) return;
+
+			// Log attached files if any
+			if (attachedFiles.length > 0) {
+				logAttachedFiles();
+			}
+
+			// Create file upload callback
+			const onFilesLinked = async (chatId: string, messageId: string) => {
+				if (attachedFiles.length > 0) {
+					console.log(`→ Uploading files for message ${messageId}`);
+					const success = await linkFilesToMessage(chatId, messageId);
+					if (!success) {
+						throw new Error("File upload failed");
+					}
+				}
+			};
+
+			try {
+				await onSendMessage(e, uploadedFileIds, onFilesLinked);
+				clearFiles();
+			} catch (error) {
+				console.error("Failed to send message:", error);
+			}
+		},
+		[
 			input,
-			selectedModel,
-			isCreatingChat,
-			chatState,
-			setInput,
-			setSelectedModel,
-			onCancel,
-		} = useChatContext();
+			attachedFiles,
+			getUploadedFileIds,
+			logAttachedFiles,
+			linkFilesToMessage,
+			onSendMessage,
+			clearFiles,
+		]
+	);
 
-		const textareaRef = useRef<HTMLTextAreaElement>(null);
+	// Handle keyboard shortcuts
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+			// Send on Enter (without Shift)
+			if (e.key === "Enter" && !e.shiftKey) {
+				e.preventDefault();
+				handleSubmit(e as any);
+			}
 
-		// Auto-resize textarea
-		const adjustTextareaHeight = useCallback(() => {
-			const textarea = textareaRef.current;
-			if (!textarea) return;
+			// Cancel on Escape
+			if (e.key === "Escape" && onCancel) {
+				e.preventDefault();
+				onCancel();
+			}
+		},
+		[handleSubmit, onCancel]
+	);
 
-			textarea.style.height = "auto";
-			const newHeight = Math.min(textarea.scrollHeight, maxHeight);
-			textarea.style.height = `${newHeight}px`;
-		}, []);
+	const hasContent = input.trim() || attachedFiles.length > 0;
 
-		useEffect(() => {
-			adjustTextareaHeight();
-		}, [input, adjustTextareaHeight]);
-
-		// Handle keyboard shortcuts
-		const handleKeyDown = useCallback(
-			(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-				// Send on Enter (without Shift)
-				if (e.key === "Enter" && !e.shiftKey) {
-					e.preventDefault();
-					onSendMessage(e as any);
-				}
-
-				// Cancel on Escape
-				if (e.key === "Escape" && onCancel) {
-					e.preventDefault();
-					onCancel();
-				}
-			},
-			[onSendMessage, onCancel],
-		);
-
-		return (
+	return (
+		<DragDropZone
+			onFilesDropped={handleFilesSelected}
+			disabled={isCreatingChat}
+		>
 			<div className="max-w-3xl mx-auto w-full">
 				{/* Outer container */}
-				<div className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl relative overflow-hidden border border-border/40 shadow-lg bg-card/20 backdrop-blur-md group">
+				<div className="p-1.5 sm:p-2 rounded-xl sm:rounded-2xl relative border border-border/40 shadow-lg bg-card/20 backdrop-blur-md group">
 					<AnimatedBackground />
 
 					{/* Content Container */}
 					<div className="relative z-10 bg-card/90 backdrop-blur-xl border border-border/70 rounded-lg sm:rounded-xl group-hover:backdrop-blur-2xl group-hover:bg-card transition-all duration-500">
-						<form onSubmit={onSendMessage} className="p-2 sm:p-3">
+						<form onSubmit={handleSubmit} className="p-2 sm:p-3">
+							{/* File preview section */}
+							{attachedFiles.length > 0 && (
+								<div className="mb-2 sm:mb-3">
+									<InputFilePreview
+										files={attachedFiles}
+										onRemoveFile={handleRemoveFile}
+									/>
+								</div>
+							)}
+
 							{/* Input section */}
 							<div className="mb-2 sm:mb-3">
 								<textarea
@@ -89,7 +166,11 @@ export const ChatInput = memo(
 							{/* Controls section */}
 							<div className="flex items-center justify-between gap-2 sm:gap-3 pt-2">
 								{/* Model selector */}
-								<div className="flex items-center">
+								<div className="flex items-center gap-1">
+									<FileUploadButton
+										onFilesSelected={handleFilesSelected}
+										disabled={isCreatingChat}
+									/>
 									<ModelSelector
 										value={selectedModel}
 										onValueChange={setSelectedModel}
@@ -99,31 +180,34 @@ export const ChatInput = memo(
 
 								{/* Actions Button */}
 								<div className="flex items-center gap-1 sm:gap-2 ml-auto">
-									{/* Cancel button */}
-									{/* {isLoading && onCancel && (
 									<Button
-										type="button"
-										size="sm"
-										onClick={onCancel}
-										className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md sm:rounded-lg transition-all duration-200 cursor-pointer"
-									>
-										<FaRegCircleStop className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-										<span className="sr-only">
-											Stop generating
-										</span>
-									</Button>
-								)} */}
-
-									<Button
-										type="submit"
-										size="sm"
-										disabled={
-											!input.trim() || isCreatingChat
+										type={
+											chatState.isStreamingResponse
+												? "button"
+												: "submit"
 										}
-										className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md sm:rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+										size="sm"
+										onClick={
+											chatState.isStreamingResponse
+												? onStop
+												: undefined
+										}
+										disabled={
+											(!hasContent &&
+												!chatState.isStreamingResponse) ||
+											isCreatingChat
+										}
+										className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md sm:rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
 									>
 										{isCreatingChat ? (
 											<Spinner size="sm" color="dark" />
+										) : chatState.isStreamingResponse ? (
+											<>
+												<FaRegCircleStop className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+												<span className="sr-only">
+													Stop generating
+												</span>
+											</>
 										) : (
 											<>
 												<FaArrowUpLong className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
@@ -139,6 +223,6 @@ export const ChatInput = memo(
 					</div>
 				</div>
 			</div>
-		);
-	},
-);
+		</DragDropZone>
+	);
+});

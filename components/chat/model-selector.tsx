@@ -2,26 +2,48 @@
 
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo, useCallback, useEffect, useState, useRef } from "react";
 import {
 	DEFAULT_MODEL,
 	getModelById,
 	groupModelsByProvider,
+	modelSupportsVision,
+	modelSupportsThinking,
 } from "@/lib/ai/models";
 
-import {
-	Select,
-	SelectContent,
-	SelectGroup,
-	SelectItem,
-	SelectLabel,
-	SelectSeparator,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FiLock } from "react-icons/fi";
+import {
+	Tooltip,
+	TooltipContent,
+	TooltipProvider,
+	TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { FiLock, FiChevronDown } from "react-icons/fi";
+import { LuEye, LuBrain } from "react-icons/lu";
 import { toast } from "sonner";
+
+const MODEL_CACHE_KEY = "selected-model";
+
+// Helper functions for model caching
+const getCachedModel = (): string | null => {
+	if (typeof window === "undefined") return null;
+	try {
+		return localStorage.getItem(MODEL_CACHE_KEY);
+	} catch (error) {
+		console.error("Error reading cached model:", error);
+		return null;
+	}
+};
+
+const setCachedModel = (modelId: string): void => {
+	if (typeof window === "undefined") return;
+	try {
+		localStorage.setItem(MODEL_CACHE_KEY, modelId);
+	} catch (error) {
+		console.error("Error caching model:", error);
+	}
+};
+
 interface ModelSelectorProps {
 	value: string;
 	onValueChange?: (value: string) => void;
@@ -40,10 +62,13 @@ interface ModelStatus {
 export const ModelSelector = memo(
 	({ value, onValueChange, disabled, className }: ModelSelectorProps) => {
 		const router = useRouter();
+		const dropdownRef = useRef<HTMLDivElement>(null);
+		const [isInitialized, setIsInitialized] = useState(false);
 
 		const [modelStatuses, setModelStatuses] = useState<ModelStatus[]>([]);
 		const [isLoading, setIsLoading] = useState(false);
 		const [lastFetch, setLastFetch] = useState<number>(0);
+		const [isOpen, setIsOpen] = useState(false);
 
 		const CACHE_DURATION = 5 * 60 * 1000;
 
@@ -78,6 +103,18 @@ export const ModelSelector = memo(
 			[modelStatuses.length, lastFetch]
 		);
 
+		useEffect(() => {
+			if (!isInitialized) {
+				const cachedModelId = getCachedModel();
+				if (cachedModelId && getModelById(cachedModelId)) {
+					if (cachedModelId !== value) {
+						onValueChange?.(cachedModelId);
+					}
+				}
+				setIsInitialized(true);
+			}
+		}, [isInitialized, value, onValueChange]);
+
 		const selectedModel =
 			getModelById(value) || getModelById(DEFAULT_MODEL);
 		const groupedModels = groupModelsByProvider();
@@ -108,115 +145,221 @@ export const ModelSelector = memo(
 					router.push("/settings/api-keys");
 					return;
 				}
+
+				// Cache the selected model
+				setCachedModel(modelId);
 				onValueChange?.(modelId);
+				setIsOpen(false);
 			},
 			[onValueChange, fetchModelStatus, router]
 		);
+
+		// Close dropdown when clicking outside
+		useEffect(() => {
+			const handleClickOutside = (event: MouseEvent) => {
+				if (
+					dropdownRef.current &&
+					!dropdownRef.current.contains(event.target as Node)
+				) {
+					setIsOpen(false);
+				}
+			};
+
+			document.addEventListener("mousedown", handleClickOutside);
+			return () =>
+				document.removeEventListener("mousedown", handleClickOutside);
+		}, []);
 
 		useEffect(() => {
 			fetchModelStatuses();
 		}, [fetchModelStatuses]);
 
-		if (isLoading) {
+		if (isLoading || !isInitialized) {
 			return (
-				<div className="w-[140px] sm:w-[160px] h-8 animate-pulse rounded-md bg-muted" />
+				<div className="w-[140px] sm:w-[160px] h-9 animate-pulse rounded-md bg-muted" />
 			);
 		}
 
 		return (
-			<Select
-				value={value}
-				onValueChange={handleModelSelect}
-				disabled={disabled}
-			>
-				<SelectTrigger
+			<div className="relative" ref={dropdownRef}>
+				{/* Trigger */}
+				<button
+					onClick={() => !disabled && setIsOpen(!isOpen)}
+					disabled={disabled}
 					className={cn(
-						"w-[140px] sm:w-[160px] h-8",
-						"border-border bg-background",
-						"hover:bg-accent",
+						"w-[180px] h-9 px-3",
+						"border border-border bg-muted rounded-md",
+						"hover:bg-muted/80",
 						"transition-colors duration-150",
 						"text-sm font-medium",
 						"focus:outline-none focus:ring-1 focus:ring-ring",
 						"disabled:opacity-50 disabled:cursor-not-allowed",
+						"flex items-center justify-between cursor-pointer",
 						className
 					)}
-					tabIndex={-1}
 				>
-					<SelectValue>
-						<div className="flex items-center gap-2">
-							{selectedModel && (
+					<div className="flex items-center gap-2 justify-between w-full">
+						{selectedModel && (
+							<>
 								<span className="truncate">
 									{selectedModel.name}
 								</span>
-							)}
-						</div>
-					</SelectValue>
-				</SelectTrigger>
+								<div className="flex items-center gap-1">
+									{modelSupportsVision(selectedModel.id) && (
+										<div className="flex items-center justify-center w-4 h-4 p-0.5 bg-green-100/15 rounded-sm">
+											<LuEye className="h-2.5 w-2.5 text-green-600/80" />
+										</div>
+									)}
 
-				<SelectContent className="min-w-[180px]">
-					{Object.entries(groupedModels).map(([provider, models]) => (
-						<SelectGroup key={provider}>
-							<SelectLabel className="flex items-center gap-2 text-xs font-medium text-muted-foreground uppercase">
-								{provider}
-								{provider === "groq" && (
-									<Badge
-										variant="secondary"
-										className="text-[10px] px-1.5 py-0"
-									>
-										Free
-									</Badge>
-								)}
-							</SelectLabel>
+									{modelSupportsThinking(
+										selectedModel.id
+									) && (
+										<div className="flex items-center justify-center w-4 h-4 p-0.5 bg-pink-100/15 rounded-sm">
+											<LuBrain className="h-2.5 w-2.5 text-pink-600/80" />
+										</div>
+									)}
+								</div>
+							</>
+						)}
+					</div>
+					<FiChevronDown
+						className={cn(
+							"h-3 w-3 text-muted-foreground transition-transform duration-150 ml-1",
+							isOpen && "rotate-180"
+						)}
+					/>
+				</button>
 
-							{models.map((model) => {
-								const modelStatus = fetchModelStatus(model.id);
-								const isEnabled =
-									modelStatus?.isEnabled || model.isFree;
-
-								return (
-									<SelectItem
-										key={model.id}
-										value={model.id}
-										className={cn(
-											"text-sm cursor-pointer",
-											!isEnabled &&
-												"opacity-50 cursor-not-allowed"
-										)}
-										disabled={!isEnabled}
-									>
-										<div className="flex items-center justify-between w-full">
-											<div className="flex items-center gap-2">
-												{!model.isFree && (
-													<FiLock className="h-3 w-3 text-muted-foreground" />
-												)}
-												<span>{model.name}</span>
-											</div>
-
-											{model.isNew && (
+				{/* Dropdown */}
+				{isOpen && (
+					<div className="absolute bottom-full left-0 z-50 mb-1 min-w-[220px] max-h-80 bg-background border border-border rounded-md shadow-lg overflow-hidden">
+						<div className="max-h-72 overflow-y-auto">
+							{Object.entries(groupedModels).map(
+								([provider, models], providerIndex) => (
+									<div key={provider}>
+										{/* Provider Header */}
+										<div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-muted-foreground uppercase border-b border-border/50 bg-muted/30">
+											{provider}
+											{provider === "groq" && (
 												<Badge
 													variant="secondary"
 													className="text-[10px] px-1.5 py-0"
 												>
-													New
+													Free
 												</Badge>
 											)}
 										</div>
-									</SelectItem>
-								);
-							})}
 
-							{provider !== "openai" && <SelectSeparator />}
-						</SelectGroup>
-					))}
+										{/* Models */}
+										{models.map((model) => {
+											const modelStatus =
+												fetchModelStatus(model.id);
+											const isEnabled =
+												modelStatus?.isEnabled ||
+												model.isFree;
+											const isSelected =
+												model.id === value;
 
-					<SelectSeparator />
+											return (
+												<button
+													key={model.id}
+													onClick={() =>
+														handleModelSelect(
+															model.id
+														)
+													}
+													disabled={!isEnabled}
+													className={cn(
+														"w-full px-3 py-2.5 text-sm text-left",
+														"hover:bg-accent transition-colors",
+														"disabled:opacity-50 disabled:cursor-not-allowed",
+														isSelected &&
+															"bg-accent/50"
+													)}
+												>
+													<div className="flex items-center justify-between w-full">
+														<div className="flex items-center gap-2">
+															{!model.isFree && (
+																<FiLock className="h-3 w-3 text-muted-foreground" />
+															)}
+															<span>
+																{model.name}
+															</span>
+														</div>
 
-					<div className="flex items-center justify-center gap-1.5 p-2 text-xs text-muted-foreground">
-						<FiLock className="h-3 w-3" />
-						<span>Requires API key</span>
+														{/* Vision and Thinking indicators on the right */}
+														<div className="flex items-center gap-1.5">
+															{modelSupportsVision(
+																model.id
+															) && (
+																<TooltipProvider>
+																	<Tooltip>
+																		<TooltipTrigger
+																			asChild
+																		>
+																			<div className="flex items-center justify-center w-5 h-5 p-1 bg-green-100/10 rounded-md">
+																				<LuEye className="h-3 w-3 text-green-600/60" />
+																			</div>
+																		</TooltipTrigger>
+																		<TooltipContent className="bg-muted border-muted-foreground/20 text-xs">
+																			<p className="text-muted-foreground">
+																				Vision
+																				model
+																			</p>
+																		</TooltipContent>
+																	</Tooltip>
+																</TooltipProvider>
+															)}
+
+															{modelSupportsThinking(
+																model.id
+															) && (
+																<TooltipProvider>
+																	<Tooltip>
+																		<TooltipTrigger
+																			asChild
+																		>
+																			<div className="flex items-center justify-center w-5 h-5 p-1 bg-pink-100/10 rounded-md">
+																				<LuBrain className="h-3 w-3 text-pink-600/60" />
+																			</div>
+																		</TooltipTrigger>
+																		<TooltipContent className="bg-muted border-muted-foreground/20 text-xs">
+																			<p className="text-muted-foreground">
+																				Thinking
+																				model
+																			</p>
+																		</TooltipContent>
+																	</Tooltip>
+																</TooltipProvider>
+															)}
+														</div>
+													</div>
+												</button>
+											);
+										})}
+
+										{/* Separator between providers (except for the last one) */}
+										{providerIndex <
+											Object.entries(groupedModels)
+												.length -
+												1 && (
+											<div className="border-t border-border/50" />
+										)}
+									</div>
+								)
+							)}
+						</div>
+
+						{/* Footer */}
+						<div className="border-t border-border/50 bg-muted/30">
+							<div className="flex items-center justify-center gap-1.5 p-2 text-xs text-muted-foreground">
+								<FiLock className="h-3 w-3" />
+								<span>Requires API key</span>
+							</div>
+						</div>
 					</div>
-				</SelectContent>
-			</Select>
+				)}
+			</div>
 		);
 	}
 );

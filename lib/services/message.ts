@@ -7,6 +7,13 @@ export const getMessages = async (chatId: string, userId: string) => {
 			where: { id: chatId, userId },
 			include: {
 				messages: {
+					include: {
+						messageFiles: {
+							include: {
+								uploadedFile: true,
+							},
+						},
+					},
 					orderBy: {
 						createdAt: "asc",
 					},
@@ -17,7 +24,19 @@ export const getMessages = async (chatId: string, userId: string) => {
 			return { error: "Chat not found" };
 		}
 
-		return { messages: chat.messages };
+		return {
+			messages: chat.messages.map((msg) => {
+				const { messageFiles, ...messageWithoutFiles } = msg;
+				return {
+					...messageWithoutFiles,
+					files: messageFiles.map((file) => ({
+						id: file.uploadedFile.id,
+						name: file.uploadedFile.originalName,
+						fileGroup: file.uploadedFile.fileGroup,
+					})),
+				};
+			}),
+		};
 	} catch (error) {
 		console.error("Error fetching messages: ", error);
 		return { error: "Failed to fetch messages" };
@@ -29,8 +48,12 @@ export const sendMessage = async (
 	userId: string,
 	message: string,
 	model: string,
+	fileIds: string[] = [],
+	temperature: number,
+	maxTokens: number,
 	signal?: AbortSignal
 ) => {
+	console.log("sendMessage, fileIds", fileIds);
 	try {
 		if (signal?.aborted) {
 			return { error: "Request was cancelled" };
@@ -39,7 +62,15 @@ export const sendMessage = async (
 		const chat = await db.chat.findUnique({
 			where: { id: chatId, userId },
 			include: {
-				messages: true,
+				messages: {
+					include: {
+						messageFiles: {
+							include: {
+								uploadedFile: true,
+							},
+						},
+					},
+				},
 			},
 		});
 		if (!chat) {
@@ -73,7 +104,7 @@ export const sendMessage = async (
 			message,
 			model,
 			userId,
-			{ signal }
+			{ signal, fileIds, temperature, maxTokens }
 		);
 		let completeResponse = "";
 
@@ -118,5 +149,36 @@ export const sendMessage = async (
 	} catch (error) {
 		console.error("Error sending message: ", error);
 		return { error: "Failed to send message" };
+	}
+};
+
+export const savePartialMessage = async (
+	chatId: string,
+	content: string,
+	model: string
+) => {
+	try {
+		let finalContent = content;
+		if (
+			finalContent.includes("<think>") &&
+			!finalContent.includes("</think>")
+		) {
+			finalContent += "</think>";
+		}
+
+		await db.message.create({
+			data: { chatId, role: "ASSISTANT", content: finalContent, model },
+		});
+
+		// Update chat timestamp
+		await db.chat.update({
+			where: { id: chatId },
+			data: { updatedAt: new Date() },
+		});
+
+		return { success: true };
+	} catch (error) {
+		console.error("Error saving partial message: ", error);
+		return { error: "Failed to save partial message" };
 	}
 };

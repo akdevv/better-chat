@@ -7,7 +7,7 @@ import { MdOutlineIosShare } from "react-icons/md";
 import { Button } from "@/components/ui/button";
 
 export default function ChatPage() {
-	const { chatState, handleSendMessage } = useChatContext();
+	const { chatState } = useChatContext();
 
 	return (
 		<div className="flex flex-col h-full">
@@ -38,7 +38,7 @@ export default function ChatPage() {
 
 			{/* Input area */}
 			<div className="sticky bottom-0 p-2 sm:p-3 bg-background">
-				<ChatInput onSendMessage={handleSendMessage} maxHeight={120} />
+				<ChatInput maxHeight={120} />
 			</div>
 		</div>
 	);

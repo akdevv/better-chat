@@ -1,5 +1,11 @@
 -- CreateEnum
+CREATE TYPE "Provider" AS ENUM ('openai', 'google', 'anthropic');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('USER', 'ASSISTANT', 'SYSTEM');
+
+-- CreateEnum
+CREATE TYPE "FileCategory" AS ENUM ('document', 'code', 'data');
 
 -- CreateTable
 CREATE TABLE "Account" (
@@ -57,6 +63,7 @@ CREATE TABLE "Chat" (
     "title" TEXT NOT NULL DEFAULT 'Untitled Chat',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "isStarred" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Chat_pkey" PRIMARY KEY ("id")
 );
@@ -68,18 +75,69 @@ CREATE TABLE "Message" (
     "role" "Role" NOT NULL DEFAULT 'USER',
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "model" TEXT,
 
     CONSTRAINT "Message_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "UploadedImage" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "originalName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "uploadThingKey" TEXT NOT NULL,
+    "uploadThingUrl" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "UploadedImage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MessageImage" (
+    "id" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "uploadedImageId" TEXT NOT NULL,
+
+    CONSTRAINT "MessageImage_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "MessageFile" (
+    "id" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "fileName" TEXT NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "size" INTEGER NOT NULL,
+    "fileCategory" "FileCategory" NOT NULL,
+    "parsedContent" TEXT,
+    "metadata" JSONB,
+
+    CONSTRAINT "MessageFile_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "UserSettings" (
     "id" TEXT NOT NULL,
     "userId" TEXT NOT NULL,
-    "apiKeys" JSONB,
     "preferences" JSONB,
 
     CONSTRAINT "UserSettings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ApiKey" (
+    "id" TEXT NOT NULL,
+    "provider" "Provider" NOT NULL,
+    "encryptedKey" TEXT NOT NULL,
+    "isValidated" BOOLEAN NOT NULL DEFAULT false,
+    "lastValidated" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "ApiKey_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -101,10 +159,40 @@ CREATE UNIQUE INDEX "VerificationToken_identifier_token_key" ON "VerificationTok
 CREATE INDEX "Chat_userId_idx" ON "Chat"("userId");
 
 -- CreateIndex
+CREATE INDEX "Chat_userId_isStarred_idx" ON "Chat"("userId", "isStarred");
+
+-- CreateIndex
+CREATE INDEX "Chat_userId_createdAt_idx" ON "Chat"("userId", "createdAt");
+
+-- CreateIndex
 CREATE INDEX "Message_chatId_idx" ON "Message"("chatId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "UploadedImage_uploadThingKey_key" ON "UploadedImage"("uploadThingKey");
+
+-- CreateIndex
+CREATE INDEX "UploadedImage_userId_idx" ON "UploadedImage"("userId");
+
+-- CreateIndex
+CREATE INDEX "UploadedImage_uploadThingKey_idx" ON "UploadedImage"("uploadThingKey");
+
+-- CreateIndex
+CREATE INDEX "MessageImage_messageId_idx" ON "MessageImage"("messageId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "MessageImage_messageId_uploadedImageId_key" ON "MessageImage"("messageId", "uploadedImageId");
+
+-- CreateIndex
+CREATE INDEX "MessageFile_messageId_idx" ON "MessageFile"("messageId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "UserSettings_userId_key" ON "UserSettings"("userId");
+
+-- CreateIndex
+CREATE INDEX "ApiKey_userId_idx" ON "ApiKey"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ApiKey_userId_provider_key" ON "ApiKey"("userId", "provider");
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -119,4 +207,16 @@ ALTER TABLE "Chat" ADD CONSTRAINT "Chat_userId_fkey" FOREIGN KEY ("userId") REFE
 ALTER TABLE "Message" ADD CONSTRAINT "Message_chatId_fkey" FOREIGN KEY ("chatId") REFERENCES "Chat"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "MessageImage" ADD CONSTRAINT "MessageImage_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "Message"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MessageImage" ADD CONSTRAINT "MessageImage_uploadedImageId_fkey" FOREIGN KEY ("uploadedImageId") REFERENCES "UploadedImage"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "MessageFile" ADD CONSTRAINT "MessageFile_messageId_fkey" FOREIGN KEY ("messageId") REFERENCES "Message"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "UserSettings" ADD CONSTRAINT "UserSettings_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ApiKey" ADD CONSTRAINT "ApiKey_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

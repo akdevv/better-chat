@@ -14,10 +14,19 @@ interface ChatContextValue {
 	// Actions
 	setInput: (input: string) => void;
 	setSelectedModel: (model: string) => void;
-	handleCreateChat: (e: React.FormEvent) => void;
-	handleSendMessage: (e: React.FormEvent) => void;
+	handleCreateChat: (
+		e: React.FormEvent,
+		uploadedFileIds?: string[],
+		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+	) => void;
+	handleSendMessage: (
+		e: React.FormEvent,
+		uploadedFileIds?: string[],
+		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+	) => void;
 
 	onCancel: () => void;
+	onStop: () => void;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);

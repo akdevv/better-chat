@@ -1,3 +1,5 @@
+"use server";
+
 import { hash } from "bcryptjs";
 import { db } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -40,7 +42,7 @@ export const registerUser = async (data: RegisterUserProps) => {
 		return user;
 	} catch (error) {
 		throw new Error(
-			error instanceof Error ? error.message : "An error occurred!",
+			error instanceof Error ? error.message : "An error occurred!"
 		);
 	}
 };

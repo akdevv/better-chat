@@ -49,6 +49,7 @@ model User {
   chats         Chat[]
   sessions      Session[]
   userSettings  UserSettings?
+  uploadedFiles UploadedFile[]
 }
 
 model VerificationToken {
@@ -75,15 +76,45 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  chatId    String
-  role      Role     @default(USER)
-  content   String
-  createdAt DateTime @default(now())
-  model     String?
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  id           String        @id @default(cuid())
+  chatId       String
+  role         Role          @default(USER)
+  content      String
+  createdAt    DateTime      @default(now())
+  model        String?
+  chat         Chat          @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  messageFiles MessageFile[]
 
   @@index([chatId])
+}
+
+model UploadedFile {
+  id             String        @id @default(cuid())
+  userId         String
+  originalName   String
+  mimeType       String
+  size           Int
+  fileGroup      FileGroup
+  uploadThingKey String        @unique
+  uploadThingUrl String
+  createdAt      DateTime      @default(now())
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messageFiles   MessageFile[]
+
+  @@index([userId])
+  @@index([uploadThingKey])
+  @@index([fileGroup])
+}
+
+model MessageFile {
+  id             String       @id @default(cuid())
+  messageId      String
+  uploadedFileId String
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedFile   UploadedFile @relation(fields: [uploadedFileId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, uploadedFileId])
+  @@index([messageId])
 }
 
 model UserSettings {
@@ -102,7 +133,7 @@ model ApiKey {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   userId        String
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, provider])
   @@index([userId])
@@ -118,4 +149,11 @@ enum Role {
   USER
   ASSISTANT
   SYSTEM
+}
+
+enum FileGroup {
+  IMAGE
+  PDF
+  TEXT
+  CODE
 }

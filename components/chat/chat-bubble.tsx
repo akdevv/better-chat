@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PiBrain } from "react-icons/pi";
 import { FiCopy, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { MarkdownRenderer } from "@/components/chat/markdown-renderer";
+import { ChatFilePreview } from "@/components/chat/chat-file-preview";
 
 interface ContentPart {
 	type: "thinking" | "content";
@@ -105,6 +106,7 @@ export function ChatBubble({
 				const isUserMessage = message.role === "USER";
 				const isThinkingExpanded =
 					expandedThinking[message.id] || false;
+				const hasFiles = message.files && message.files.length > 0;
 
 				return (
 					<div
@@ -120,6 +122,11 @@ export function ChatBubble({
 									: "w-full"
 							}`}
 						>
+							{/* Attached Files (for user messages) */}
+							{isUserMessage && hasFiles && (
+								<ChatFilePreview files={message.files!} />
+							)}
+
 							{/* Message Content */}
 							<div
 								className={`${
@@ -142,7 +149,7 @@ export function ChatBubble({
 																<button
 																	onClick={() =>
 																		toggleThinking(
-																			message.id,
+																			message.id
 																		)
 																	}
 																	className="group w-full flex items-center justify-between p-3 bg-muted/15 hover:bg-muted/25 transition-all duration-200 rounded-lg border border-transparent hover:border-muted/30"
@@ -181,7 +188,7 @@ export function ChatBubble({
 															/>
 														)}
 													</div>
-												),
+												)
 											)}
 										</div>
 									)}
@@ -189,7 +196,7 @@ export function ChatBubble({
 							</div>
 
 							{/* Model Details and Copy Button */}
-							{!isUserMessage && (
+							{!isUserMessage && !isWaitingForResponse && (
 								<div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
 									<span>{getModelName(message.model)}</span>
 									<Button
@@ -199,7 +206,7 @@ export function ChatBubble({
 										onClick={() =>
 											copyToClipboard(
 												message.content,
-												message.id,
+												message.id
 											)
 										}
 									>
