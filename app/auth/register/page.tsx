@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { z } from "zod";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { registerSchema } from "@/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { registerUser } from "@/lib/services/auth";
 
@@ -16,6 +16,14 @@ import { Button } from "@/components/ui/button";
 import { MdErrorOutline } from "react-icons/md";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
 import AuthSeparator from "@/components/auth/auth-seprator";
+
+const registerSchema = z.object({
+	name: z.string().min(1, { message: "Name is required" }),
+	email: z.string().email({ message: "Invalid email address" }),
+	password: z
+		.string()
+		.min(8, { message: "Password must be at least 8 characters long" }),
+});
 
 export default function RegisterPage() {
 	const router = useRouter();
@@ -58,10 +66,10 @@ export default function RegisterPage() {
 				router.push("/chat");
 			} else {
 				setError(
-					"Account created but failed to sign in. Please try logging in.",
+					"Account created but failed to sign in. Please try logging in."
 				);
 				toast.error(
-					"Account created but failed to sign in. Please try logging in.",
+					"Account created but failed to sign in. Please try logging in."
 				);
 			}
 		} catch (err) {
@@ -136,7 +144,7 @@ export default function RegisterPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700",
+								errors.password && "border-red-700"
 							)}
 						/>
 						<button

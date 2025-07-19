@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { z } from "zod";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { loginSchema } from "@/schema/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { toast } from "sonner";
@@ -15,6 +15,13 @@ import { Button } from "@/components/ui/button";
 import { LuEye, LuEyeClosed } from "react-icons/lu";
 import { MdErrorOutline } from "react-icons/md";
 import AuthSeparator from "@/components/auth/auth-seprator";
+
+const loginSchema = z.object({
+	email: z.string().email({ message: "Invalid email address" }),
+	password: z
+		.string()
+		.min(8, { message: "Password must be at least 8 characters long" }),
+});
 
 export default function LoginPage() {
 	const router = useRouter();
@@ -86,7 +93,7 @@ export default function LoginPage() {
 						disabled={isPending}
 						className={cn(
 							"w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent",
-							errors.email && "border-2 border-red-700",
+							errors.email && "border-2 border-red-700"
 						)}
 					/>
 					{errors.email && (
@@ -106,7 +113,7 @@ export default function LoginPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700",
+								errors.password && "border-red-700"
 							)}
 						/>
 						<button
