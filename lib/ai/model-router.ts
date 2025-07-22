@@ -121,7 +121,6 @@ const validateChatInput = (
 
 // Get file data from database with content
 const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
-	console.log("getFilesData, fileIds", fileIds);
 	if (fileIds.length === 0) return [];
 
 	try {
@@ -135,8 +134,6 @@ const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
 				uploadThingUrl: true,
 			},
 		});
-
-		console.log("files in getFilesData from db", files);
 
 		// Fetch file content for each file
 		const filesWithContent = await Promise.all(
@@ -158,8 +155,6 @@ const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
 			})
 		);
 
-		console.log("filesWithContent in getFilesData", filesWithContent);
-
 		return filesWithContent;
 	} catch (error) {
 		console.error("Error fetching file data:", error);
@@ -174,14 +169,9 @@ const prepareMessages = async (
 	currentMessage: string,
 	fileIds: string[] = []
 ): Promise<AIMessage[]> => {
-	console.log("prepareMessages, fileIds", fileIds);
 	const files = await getFilesData(fileIds);
 
 	validateChatInput(model, currentMessage, messages, files);
-	console.log("messages", messages);
-	console.log("currentMessage", currentMessage);
-	console.log("model", model);
-	console.log("files", files);
 
 	// Generate file context prompt if files are attached
 	const fileContextPrompt =
@@ -303,8 +293,6 @@ export const sendMessageToAI = async (
 ): Promise<ReadableStream<Uint8Array>> => {
 	const { fileIds = [], signal } = options;
 
-	console.log("sendMessageToAI, fileIds", fileIds);
-
 	const model = getModelById(modelId);
 	if (!model) throw new Error(`Model ${modelId} not found`);
 
@@ -335,8 +323,6 @@ export const sendMessageToAIWithHistory = async (
 ): Promise<ReadableStream<Uint8Array>> => {
 	const { temperature, maxTokens, fileIds = [], signal } = options;
 
-	console.log("sendMessageToAIWithHistory, fileIds", fileIds);
-
 	const model = getModelById(modelId);
 	if (!model) throw new Error(`Model ${modelId} not found`);
 
@@ -348,8 +334,6 @@ export const sendMessageToAIWithHistory = async (
 		currentMessage,
 		fileIds
 	);
-
-	console.log("finalMessages in model-router", finalMessages);
 
 	const stream = getStreamFunction(model.provider);
 	return stream({

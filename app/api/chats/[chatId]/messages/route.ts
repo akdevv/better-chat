@@ -4,8 +4,8 @@ import {
 	sendMessage,
 	savePartialMessage,
 } from "@/lib/services/message";
-import { authenticateUser } from "@/lib/services/auth";
 import { db } from "@/lib/prisma";
+import { authenticateUser } from "@/lib/services/auth";
 
 // GET /chats/:chatId/messages => get all messages for a chat
 export async function GET(
@@ -55,10 +55,7 @@ export async function POST(
 			temperature,
 			maxTokens,
 		} = await req.json();
-		console.log(
-			"fileIds in route POST /api/chats/:chatId/messages",
-			fileIds
-		);
+
 		if (!message.trim() || !model) {
 			return NextResponse.json(
 				{ error: "Message and model are required" },

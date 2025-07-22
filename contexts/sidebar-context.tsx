@@ -24,7 +24,6 @@ interface SidebarContextValue {
 	toggleStar: (chatId: string) => void;
 	deleteChat: (chatId: string) => void;
 	addChat: (chat: SidebarChat) => void;
-	generateTitle: (chatId: string, message: string) => void;
 
 	// UI Actions
 	toggleSidebar: () => void;

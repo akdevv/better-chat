@@ -79,7 +79,6 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 			// Create file upload callback
 			const onFilesLinked = async (chatId: string, messageId: string) => {
 				if (attachedFiles.length > 0) {
-					console.log(`→ Uploading files for message ${messageId}`);
 					const success = await linkFilesToMessage(chatId, messageId);
 					if (!success) {
 						throw new Error("File upload failed");

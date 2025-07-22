@@ -34,17 +34,6 @@ export const ourFileRouter = {
 			return { userId: session.user.id };
 		})
 		.onUploadComplete(async ({ metadata, file }) => {
-			console.log("=== Image Upload Complete ===");
-			console.log("Upload completed for userId:", metadata.userId);
-			console.log("File details:", {
-				key: file.key,
-				name: file.name,
-				size: file.size,
-				url: file.ufsUrl,
-				type: file.type,
-			});
-			console.log("============================");
-
 			return {
 				uploadedBy: metadata.userId,
 				fileName: file.name,

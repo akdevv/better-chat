@@ -24,9 +24,9 @@ interface ChatContextValue {
 		uploadedFileIds?: string[],
 		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
 	) => void;
-
 	onCancel: () => void;
 	onStop: () => void;
+	generateTitle: (chatId: string, userMessage: string) => Promise<void>;
 }
 
 const ChatContext = createContext<ChatContextValue | undefined>(undefined);

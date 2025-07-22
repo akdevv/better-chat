@@ -53,7 +53,6 @@ export const sendMessage = async (
 	maxTokens: number,
 	signal?: AbortSignal
 ) => {
-	console.log("sendMessage, fileIds", fileIds);
 	try {
 		if (signal?.aborted) {
 			return { error: "Request was cancelled" };

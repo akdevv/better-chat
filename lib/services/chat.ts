@@ -87,7 +87,10 @@ export const createChat = async (
 			return { chat, message };
 		});
 
-		return { chatId: result.chat.id };
+		return {
+			chatId: result.chat.id,
+			messageId: result.message?.id,
+		};
 	} catch (error) {
 		console.error("Error creating chat:", error);
 		return { error: "Failed to create chat" };

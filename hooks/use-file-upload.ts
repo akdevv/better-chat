@@ -34,8 +34,6 @@ export const useFileUpload = () => {
 	// Add files with validation (only preview)
 	const handleFilesSelected = useCallback(
 		async (files: File[]) => {
-			console.log(`=== Adding ${files.length} files to message ===`);
-
 			const validFiles: File[] = [];
 			const errors: string[] = [];
 
@@ -119,17 +117,6 @@ export const useFileUpload = () => {
 
 			setAttachedFiles((prev) => [...prev, ...newFiles]);
 
-			console.log(
-				`Added ${newFiles.length} files. Total: ${
-					attachedFiles.length + newFiles.length
-				}`
-			);
-			console.log(
-				`Total size: ${formatFileSize(
-					totalSizeAfterAdd
-				)} / ${formatFileSize(FILE_LIMITS.MAX_TOTAL_SIZE)}`
-			);
-
 			// Start uploading files immediately
 			if (newFiles.length > 0) {
 				toast.success(
@@ -147,8 +134,6 @@ export const useFileUpload = () => {
 		setIsUploading(true);
 
 		try {
-			console.log(`=== Uploading ${files.length} files immediately ===`);
-
 			// Update files to uploading status
 			const fileIds = files.map((f) => f.id);
 			setAttachedFiles((prev) =>
@@ -178,8 +163,6 @@ export const useFileUpload = () => {
 						throw new Error(result.error || "Upload failed");
 					}
 
-					console.log("result", result);
-
 					// Return success result
 					return {
 						fileId: fileItem.id,
@@ -200,7 +183,7 @@ export const useFileUpload = () => {
 			});
 
 			const uploadResults = await Promise.all(uploadPromises);
-			
+
 			// Update file states with results
 			uploadResults.forEach((result) => {
 				setAttachedFiles((prev) =>
@@ -284,16 +267,8 @@ export const useFileUpload = () => {
 			}
 
 			try {
-				console.log(
-					`=== Linking ${uploadedFiles.length} files to message ${messageId} ===`
-				);
 				const uploadedFileIds = uploadedFiles.map(
 					(f) => f.uploadData!.id
-				);
-
-				console.log(
-					"Sending req to:",
-					`/api/chats/${chatId}/messages/${messageId}`
 				);
 
 				// Link files to message via API
@@ -317,7 +292,6 @@ export const useFileUpload = () => {
 					);
 				}
 
-				console.log("Files linked to message successfully");
 				toast.success(
 					`${uploadedFiles.length} file${
 						uploadedFiles.length > 1 ? "s" : ""
@@ -348,7 +322,6 @@ export const useFileUpload = () => {
 	// Clear all files
 	const clearFiles = useCallback(() => {
 		setAttachedFiles([]);
-		console.log("Cleared all attached files");
 	}, []);
 
 	// Get upload statistics
@@ -380,7 +353,7 @@ export const useFileUpload = () => {
 
 	// Check if ready to send (has files and none are uploading/error)
 	const isReadyToSend = useCallback(() => {
-		if (attachedFiles.length === 0) return true; // No files is fine
+		if (attachedFiles.length === 0) return true;
 
 		// All files should be pending (ready to upload) or uploaded
 		return attachedFiles.every(
@@ -391,7 +364,6 @@ export const useFileUpload = () => {
 	// Log attached files
 	const logAttachedFiles = useCallback(() => {
 		if (attachedFiles.length > 0) {
-			console.log("=== Current Attached Files ===");
 			attachedFiles.forEach((fileItem, index) => {
 				console.log(`File ${index + 1}:`, {
 					id: fileItem.id,
@@ -403,7 +375,6 @@ export const useFileUpload = () => {
 					error: fileItem.error,
 				});
 			});
-			console.log("===============================");
 		}
 	}, [attachedFiles]);
 

@@ -30,10 +30,6 @@ export async function POST(
 			);
 		}
 
-		console.log(
-			`=== Linking ${uploadedFileIds.length} files to message ${messageId} ===`
-		);
-
 		// Verify message ownership through chat
 		const message = await db.message.findFirst({
 			where: {
@@ -76,12 +72,8 @@ export async function POST(
 
 		await db.messageFile.createMany({
 			data: linkData,
-			skipDuplicates: true, // Avoid errors if already linked
+			skipDuplicates: true,
 		});
-
-		console.log(
-			`Successfully linked ${uploadedFileIds.length} files to message`
-		);
 
 		return NextResponse.json({
 			success: true,

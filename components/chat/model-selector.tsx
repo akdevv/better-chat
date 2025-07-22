@@ -184,6 +184,7 @@ export const ModelSelector = memo(
 			<div className="relative" ref={dropdownRef}>
 				{/* Trigger */}
 				<button
+					type="button"
 					onClick={() => !disabled && setIsOpen(!isOpen)}
 					disabled={disabled}
 					className={cn(
@@ -263,6 +264,7 @@ export const ModelSelector = memo(
 											return (
 												<button
 													key={model.id}
+													type="button"
 													onClick={() =>
 														handleModelSelect(
 															model.id

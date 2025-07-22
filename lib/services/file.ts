@@ -74,7 +74,6 @@ export const validateFiles = (
 
 // Upload files to UploadThing and save to database
 export const uploadFile = async (files: File[], userId: string) => {
-	// validate before uploading
 	const validationResult = validateFiles(files);
 	if (!validationResult.valid) {
 		throw new Error(validationResult.error);
@@ -90,10 +89,8 @@ export const uploadFile = async (files: File[], userId: string) => {
 			}
 
 			const { key, ufsUrl, name, size } = uploadResult[0].data;
-			console.log("→ UploadThing result:", { key, ufsUrl, name, size });
 
 			// save to database
-			console.log("→ Saving to database...");
 			const savedFile = await db.uploadedFile.create({
 				data: {
 					userId,
@@ -109,8 +106,6 @@ export const uploadFile = async (files: File[], userId: string) => {
 					uploadThingUrl: ufsUrl,
 				},
 			});
-			console.log("→ Saved to database with ID:", savedFile.id);
-			console.log("=================================");
 
 			return {
 				success: true,
@@ -131,7 +126,6 @@ export const uploadFile = async (files: File[], userId: string) => {
 			} as UploadThingFileResult;
 		} catch (error) {
 			console.error(`Error uploading ${file.name}:`, error);
-			console.log("=================================");
 
 			return {
 				success: false,
@@ -150,13 +144,6 @@ export const uploadFile = async (files: File[], userId: string) => {
 
 	const uploadedFiles = await Promise.all(uploadPromises);
 	results.push(...uploadedFiles);
-
-	// Log summary
-	const successful = results.filter((r) => r.success).length;
-	const failed = results.filter((r) => !r.success).length;
-	console.log(
-		`=== Upload Summary: ${successful} successful, ${failed} failed ===\n`
-	);
 
 	return results;
 };

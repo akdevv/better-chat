@@ -56,6 +56,21 @@ export function useSidebarData() {
 							? { ...chat, title: update.payload.title }
 							: chat
 					);
+				case "UPDATE_TIMESTAMP":
+					return state
+						.map((chat) =>
+							chat.id === update.payload.id
+								? {
+										...chat,
+										updatedAt: update.payload.updatedAt,
+								  }
+								: chat
+						)
+						.sort(
+							(a, b) =>
+								new Date(b.updatedAt).getTime() -
+								new Date(a.updatedAt).getTime()
+						);
 				default:
 					return state;
 			}
@@ -185,6 +200,19 @@ export function useSidebarData() {
 		async (chatId: string) => {
 			console.log("🗑️ Deleting chat:", chatId);
 
+			// Update actual state immediately for instant feedback
+			setChats((prev) => prev.filter((chat) => chat.id !== chatId));
+			setTotalCount((prev) => Math.max(0, prev - 1));
+
+			// Update cache immediately if it exists
+			if (cache.current) {
+				cache.current.data = cache.current.data.filter(
+					(chat) => chat.id !== chatId
+				);
+				cache.current.total = Math.max(0, cache.current.total - 1);
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
 			startTransition(() => {
 				setOptimisticChats({ type: "DELETE", payload: chatId });
 			});
@@ -202,10 +230,6 @@ export function useSidebarData() {
 				}
 
 				console.log("✅ Chat deleted successfully");
-
-				// Update actual state
-				setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-				setTotalCount((prev) => Math.max(0, prev - 1));
 
 				// Invalidate cache and fetch in background
 				await invalidateCacheAndRefetch();
@@ -235,6 +259,40 @@ export function useSidebarData() {
 				updatedAt: new Date(),
 			};
 
+			// Update actual state immediately for instant feedback
+			setChats((prev) => {
+				const updated = prev.map((chat) =>
+					chat.id === chatId
+						? { ...chat, title: newTitle, updatedAt: new Date() }
+						: chat
+				);
+				return updated.sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+			});
+
+			// Update cache immediately if it exists
+			if (cache.current) {
+				cache.current.data = cache.current.data
+					.map((chat) =>
+						chat.id === chatId
+							? {
+									...chat,
+									title: newTitle,
+									updatedAt: new Date(),
+							  }
+							: chat
+					)
+					.sort(
+						(a, b) =>
+							new Date(b.updatedAt).getTime() -
+							new Date(a.updatedAt).getTime()
+					);
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
 			startTransition(() => {
 				setOptimisticChats({ type: "UPDATE", payload: updatedChat });
 			});
@@ -255,7 +313,7 @@ export function useSidebarData() {
 				const serverUpdatedChat = await res.json();
 				console.log("✅ Chat renamed successfully");
 
-				// Update actual state
+				// Update actual state with server response
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
 						chat.id === serverUpdatedChat.id
@@ -302,6 +360,44 @@ export function useSidebarData() {
 				updatedAt: new Date(),
 			};
 
+			// Update actual state immediately for instant feedback
+			setChats((prev) => {
+				const updated = prev.map((chat) =>
+					chat.id === chatId
+						? {
+								...chat,
+								isStarred: !chat.isStarred,
+								updatedAt: new Date(),
+						  }
+						: chat
+				);
+				return updated.sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+			});
+
+			// Update cache immediately if it exists
+			if (cache.current) {
+				cache.current.data = cache.current.data
+					.map((chat) =>
+						chat.id === chatId
+							? {
+									...chat,
+									isStarred: !chat.isStarred,
+									updatedAt: new Date(),
+							  }
+							: chat
+					)
+					.sort(
+						(a, b) =>
+							new Date(b.updatedAt).getTime() -
+							new Date(a.updatedAt).getTime()
+					);
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
 			startTransition(() => {
 				setOptimisticChats({ type: "UPDATE", payload: updatedChat });
 			});
@@ -322,7 +418,7 @@ export function useSidebarData() {
 				const serverUpdatedChat = await res.json();
 				console.log("✅ Chat star toggled successfully");
 
-				// Update actual state
+				// Update actual state with server response
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
 						chat.id === serverUpdatedChat.id
@@ -356,13 +452,9 @@ export function useSidebarData() {
 		async (newChat: SidebarChat) => {
 			console.log("➕ Adding new chat:", newChat.id);
 
-			startTransition(() => {
-				setOptimisticChats({ type: "ADD", payload: newChat });
-			});
-
-			// Update actual state
+			// Update actual state immediately for instant feedback
 			setChats((prev) =>
-				[...prev, newChat].sort(
+				[newChat, ...prev].sort(
 					(a, b) =>
 						new Date(b.updatedAt).getTime() -
 						new Date(a.updatedAt).getTime()
@@ -370,19 +462,189 @@ export function useSidebarData() {
 			);
 			setTotalCount((prev) => prev + 1);
 
-			// Invalidate cache and fetch in background
-			await invalidateCacheAndRefetch();
+			// Update cache immediately if it exists
+			if (cache.current) {
+				cache.current.data = [newChat, ...cache.current.data].sort(
+					(a, b) =>
+						new Date(b.updatedAt).getTime() -
+						new Date(a.updatedAt).getTime()
+				);
+				cache.current.total = cache.current.total + 1;
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
+			startTransition(() => {
+				setOptimisticChats({ type: "ADD", payload: newChat });
+			});
+
+			console.log("✅ Chat added to sidebar immediately");
 		},
-		[setOptimisticChats, invalidateCacheAndRefetch]
+		[setOptimisticChats]
 	);
 
-	const generateTitle = useCallback(
-		async (chatId: string, message: string) => {
-			console.log("🏷️ Generating title for chat:", chatId);
-			return "implement later";
+	// Update chat title function (used by event listener)
+	const updateChatTitle = useCallback(
+		(chatId: string, newTitle: string) => {
+			console.log(
+				"🏷️ Updating chat title via event:",
+				chatId,
+				"to:",
+				newTitle
+			);
+
+			// Update actual state immediately for instant feedback
+			setChats((prev) =>
+				prev.map((chat) =>
+					chat.id === chatId ? { ...chat, title: newTitle } : chat
+				)
+			);
+
+			// Update cache if it exists
+			if (cache.current) {
+				cache.current.data = cache.current.data.map((chat) =>
+					chat.id === chatId ? { ...chat, title: newTitle } : chat
+				);
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
+			startTransition(() => {
+				setOptimisticChats({
+					type: "UPDATE_TITLE",
+					payload: { id: chatId, title: newTitle },
+				});
+			});
+
+			console.log("✅ Chat title updated in sidebar via event");
 		},
-		[]
+		[setOptimisticChats]
 	);
+
+	// Update chat timestamp function (used by event listener for message activity)
+	const updateChatTimestamp = useCallback(
+		(chatId: string, updatedAt: Date) => {
+			console.log(
+				"⏰ Updating chat timestamp via event:",
+				chatId,
+				"to:",
+				updatedAt
+			);
+
+			// Update actual state immediately for instant feedback
+			setChats((prev) =>
+				prev
+					.map((chat) =>
+						chat.id === chatId ? { ...chat, updatedAt } : chat
+					)
+					.sort(
+						(a, b) =>
+							new Date(b.updatedAt).getTime() -
+							new Date(a.updatedAt).getTime()
+					)
+			);
+
+			// Update cache if it exists
+			if (cache.current) {
+				cache.current.data = cache.current.data
+					.map((chat) =>
+						chat.id === chatId ? { ...chat, updatedAt } : chat
+					)
+					.sort(
+						(a, b) =>
+							new Date(b.updatedAt).getTime() -
+							new Date(a.updatedAt).getTime()
+					);
+			}
+
+			// Optimistic update (wrapped in startTransition for React compliance)
+			startTransition(() => {
+				setOptimisticChats({
+					type: "UPDATE_TIMESTAMP",
+					payload: { id: chatId, updatedAt },
+				});
+			});
+
+			console.log("✅ Chat timestamp updated in sidebar via event");
+		},
+		[setOptimisticChats]
+	);
+
+	// Listen for chat creation events
+	useEffect(() => {
+		const handleChatCreated = (event: CustomEvent) => {
+			const { chat } = event.detail;
+			console.log("📡 Received chat created event:", chat);
+			addChat(chat);
+		};
+
+		// Add event listener for chat creation
+		window.addEventListener(
+			"chatCreated",
+			handleChatCreated as EventListener
+		);
+		console.log("👂 Listening for chatCreated events");
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener(
+				"chatCreated",
+				handleChatCreated as EventListener
+			);
+			console.log("🧹 Removed chatCreated event listener");
+		};
+	}, [addChat]);
+
+	// Listen for title update events
+	useEffect(() => {
+		const handleTitleUpdate = (event: CustomEvent) => {
+			const { chatId, title } = event.detail;
+			console.log("📡 Received title update event:", { chatId, title });
+			updateChatTitle(chatId, title);
+		};
+
+		// Add event listener for title updates
+		window.addEventListener(
+			"chatTitleUpdated",
+			handleTitleUpdate as EventListener
+		);
+		console.log("👂 Listening for chatTitleUpdated events");
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener(
+				"chatTitleUpdated",
+				handleTitleUpdate as EventListener
+			);
+			console.log("🧹 Removed chatTitleUpdated event listener");
+		};
+	}, [updateChatTitle]);
+
+	// Listen for chat update events (for message activity)
+	useEffect(() => {
+		const handleChatUpdated = (event: CustomEvent) => {
+			const { chatId, updatedAt } = event.detail;
+			console.log("📡 Received chat updated event:", {
+				chatId,
+				updatedAt,
+			});
+			updateChatTimestamp(chatId, new Date(updatedAt));
+		};
+
+		// Add event listener for chat updates
+		window.addEventListener(
+			"chatUpdated",
+			handleChatUpdated as EventListener
+		);
+		console.log("👂 Listening for chatUpdated events");
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener(
+				"chatUpdated",
+				handleChatUpdated as EventListener
+			);
+			console.log("🧹 Removed chatUpdated event listener");
+		};
+	}, [updateChatTimestamp]);
 
 	// Initial load
 	useEffect(() => {
@@ -408,6 +670,5 @@ export function useSidebarData() {
 		toggleStar,
 		deleteChat,
 		addChat,
-		generateTitle,
 	};
 }

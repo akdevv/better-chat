@@ -23,18 +23,11 @@ export async function POST(req: NextRequest) {
 			);
 		}
 
-		console.log(
-			`=== API: Processing ${files.length} files for user ${userId} ===`
-		);
-
 		const processedFiles = await uploadFile(files, userId);
 
 		// Log summary
 		const successful = processedFiles.filter((r: any) => r.success).length;
 		const failed = processedFiles.filter((r: any) => !r.success).length;
-		console.log(
-			`=== Processing Summary: ${successful} successful, ${failed} failed ===`
-		);
 
 		return NextResponse.json({
 			success: true,
