@@ -2,7 +2,6 @@
 
 import { useSidebar } from "@/contexts/sidebar-context";
 import { ChatItem } from "./chat-item";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Spinner } from "@/components/shared/spinner";
 import { Button } from "@/components/ui/button";
 import { FiSearch } from "react-icons/fi";
@@ -22,7 +21,7 @@ export function ChatList() {
 					<Spinner />
 				</div>
 			) : (
-				<ScrollArea className="h-full px-3">
+				<div className="h-full px-3 hide-scrollbar">
 					{/* Starred chats */}
 					{starredChats.length > 0 && (
 						<>
@@ -62,7 +61,7 @@ export function ChatList() {
 							</Link>
 						</div>
 					)}
-				</ScrollArea>
+				</div>
 			)}
 		</>
 	);

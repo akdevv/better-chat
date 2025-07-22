@@ -9,6 +9,7 @@ import { PiBrain } from "react-icons/pi";
 import { FiCopy, FiCheck, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { MarkdownRenderer } from "@/components/chat/markdown-renderer";
 import { ChatFilePreview } from "@/components/chat/chat-file-preview";
+import { MessagesSkeleton } from "@/components/chat/messages-skeleton";
 
 interface ContentPart {
 	type: "thinking" | "content";
@@ -88,6 +89,10 @@ export function ChatBubble() {
 			[messageId]: !prev[messageId],
 		}));
 	};
+
+	if (chatState.isChatLoading) {
+		return <MessagesSkeleton />;
+	}
 
 	return (
 		<div

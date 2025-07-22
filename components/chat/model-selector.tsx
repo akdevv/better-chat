@@ -100,7 +100,7 @@ export const ModelSelector = memo(
 					setIsLoading(false);
 				}
 			},
-			[modelStatuses.length, lastFetch]
+			[modelStatuses.length, lastFetch, CACHE_DURATION]
 		);
 
 		useEffect(() => {
@@ -365,3 +365,5 @@ export const ModelSelector = memo(
 		);
 	}
 );
+
+ModelSelector.displayName = "ModelSelector";

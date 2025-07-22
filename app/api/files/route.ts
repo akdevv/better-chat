@@ -25,18 +25,9 @@ export async function POST(req: NextRequest) {
 
 		const processedFiles = await uploadFile(files, userId);
 
-		// Log summary
-		const successful = processedFiles.filter((r: any) => r.success).length;
-		const failed = processedFiles.filter((r: any) => !r.success).length;
-
 		return NextResponse.json({
 			success: true,
 			processedFiles,
-			summary: {
-				total: processedFiles.length,
-				successful,
-				failed,
-			},
 		});
 	} catch (error) {
 		console.error("Error uploading files:", error);

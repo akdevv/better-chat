@@ -15,7 +15,7 @@ interface ProfileStats {
 }
 
 interface StatCardProps {
-	icon: React.ComponentType<any>;
+	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
 	value: string;
 	label: string;
 	color: string;

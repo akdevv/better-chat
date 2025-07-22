@@ -56,7 +56,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 		textarea.style.height = "auto";
 		const newHeight = Math.min(textarea.scrollHeight, maxHeight);
 		textarea.style.height = `${newHeight}px`;
-	}, []);
+	}, [maxHeight]);
 
 	useEffect(() => {
 		adjustTextareaHeight();
@@ -96,6 +96,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 		},
 		[
 			input,
+			setInput,
 			attachedFiles,
 			getUploadedFileIds,
 			logAttachedFiles,
@@ -111,7 +112,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 			// Send on Enter (without Shift)
 			if (e.key === "Enter" && !e.shiftKey) {
 				e.preventDefault();
-				handleSubmit(e as any);
+				handleSubmit(e as React.FormEvent);
 			}
 
 			// Cancel on Escape
@@ -226,3 +227,5 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 		</DragDropZone>
 	);
 });
+
+ChatInput.displayName = "ChatInput";
