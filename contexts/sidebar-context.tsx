@@ -31,7 +31,7 @@ interface SidebarContextValue {
 }
 
 const SidebarContext = createContext<SidebarContextValue | undefined>(
-	undefined
+	undefined,
 );
 
 export function useSidebar() {
@@ -52,8 +52,6 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 	};
 
 	return (
-		<SidebarContext.Provider value={value}>
-			{children}
-		</SidebarContext.Provider>
+		<SidebarContext.Provider value={value}>{children}</SidebarContext.Provider>
 	);
 }

@@ -100,7 +100,7 @@ export const ModelSelector = memo(
 					setIsLoading(false);
 				}
 			},
-			[modelStatuses.length, lastFetch, CACHE_DURATION]
+			[modelStatuses.length, lastFetch, CACHE_DURATION],
 		);
 
 		useEffect(() => {
@@ -115,8 +115,7 @@ export const ModelSelector = memo(
 			}
 		}, [isInitialized, value, onValueChange]);
 
-		const selectedModel =
-			getModelById(value) || getModelById(DEFAULT_MODEL);
+		const selectedModel = getModelById(value) || getModelById(DEFAULT_MODEL);
 		const groupedModels = groupModelsByProvider();
 
 		// Get status for a specific model
@@ -124,14 +123,13 @@ export const ModelSelector = memo(
 			(modelId: string) => {
 				return modelStatuses.find((status) => status.id === modelId);
 			},
-			[modelStatuses]
+			[modelStatuses],
 		);
 
 		// Handle model selection
 		const handleModelSelect = useCallback(
 			(modelId: string) => {
-				const modelStatus: ModelStatus | undefined =
-					fetchModelStatus(modelId);
+				const modelStatus: ModelStatus | undefined = fetchModelStatus(modelId);
 
 				if (!modelStatus) {
 					toast.error("Model not found");
@@ -140,7 +138,7 @@ export const ModelSelector = memo(
 
 				if (!modelStatus.isEnabled) {
 					toast.error(
-						`This model requires a valid ${modelStatus.provider} API key`
+						`This model requires a valid ${modelStatus.provider} API key`,
 					);
 					router.push("/settings/api-keys");
 					return;
@@ -151,7 +149,7 @@ export const ModelSelector = memo(
 				onValueChange?.(modelId);
 				setIsOpen(false);
 			},
-			[onValueChange, fetchModelStatus, router]
+			[onValueChange, fetchModelStatus, router],
 		);
 
 		// Close dropdown when clicking outside
@@ -196,15 +194,13 @@ export const ModelSelector = memo(
 						"focus:outline-none focus:ring-1 focus:ring-ring",
 						"disabled:opacity-50 disabled:cursor-not-allowed",
 						"flex items-center justify-between cursor-pointer",
-						className
+						className,
 					)}
 				>
 					<div className="flex items-center gap-2 justify-between w-full">
 						{selectedModel && (
 							<>
-								<span className="truncate">
-									{selectedModel.name}
-								</span>
+								<span className="truncate">{selectedModel.name}</span>
 								<div className="flex items-center gap-1">
 									{modelSupportsVision(selectedModel.id) && (
 										<div className="flex items-center justify-center w-4 h-4 p-0.5 bg-green-100/15 rounded-sm">
@@ -212,9 +208,7 @@ export const ModelSelector = memo(
 										</div>
 									)}
 
-									{modelSupportsThinking(
-										selectedModel.id
-									) && (
+									{modelSupportsThinking(selectedModel.id) && (
 										<div className="flex items-center justify-center w-4 h-4 p-0.5 bg-pink-100/15 rounded-sm">
 											<LuBrain className="h-2.5 w-2.5 text-pink-600/80" />
 										</div>
@@ -226,7 +220,7 @@ export const ModelSelector = memo(
 					<FiChevronDown
 						className={cn(
 							"h-3 w-3 text-muted-foreground transition-transform duration-150 ml-1",
-							isOpen && "rotate-180"
+							isOpen && "rotate-180",
 						)}
 					/>
 				</button>
@@ -253,30 +247,21 @@ export const ModelSelector = memo(
 
 										{/* Models */}
 										{models.map((model) => {
-											const modelStatus =
-												fetchModelStatus(model.id);
-											const isEnabled =
-												modelStatus?.isEnabled ||
-												model.isFree;
-											const isSelected =
-												model.id === value;
+											const modelStatus = fetchModelStatus(model.id);
+											const isEnabled = modelStatus?.isEnabled || model.isFree;
+											const isSelected = model.id === value;
 
 											return (
 												<button
 													key={model.id}
 													type="button"
-													onClick={() =>
-														handleModelSelect(
-															model.id
-														)
-													}
+													onClick={() => handleModelSelect(model.id)}
 													disabled={!isEnabled}
 													className={cn(
 														"w-full px-3 py-2.5 text-sm text-left",
 														"hover:bg-accent transition-colors",
 														"disabled:opacity-50 disabled:cursor-not-allowed",
-														isSelected &&
-															"bg-accent/50"
+														isSelected && "bg-accent/50",
 													)}
 												>
 													<div className="flex items-center justify-between w-full">
@@ -284,51 +269,39 @@ export const ModelSelector = memo(
 															{!model.isFree && (
 																<FiLock className="h-3 w-3 text-muted-foreground" />
 															)}
-															<span>
-																{model.name}
-															</span>
+															<span>{model.name}</span>
 														</div>
 
 														{/* Vision and Thinking indicators on the right */}
 														<div className="flex items-center gap-1.5">
-															{modelSupportsVision(
-																model.id
-															) && (
+															{modelSupportsVision(model.id) && (
 																<TooltipProvider>
 																	<Tooltip>
-																		<TooltipTrigger
-																			asChild
-																		>
+																		<TooltipTrigger asChild>
 																			<div className="flex items-center justify-center w-5 h-5 p-1 bg-green-100/10 rounded-md">
 																				<LuEye className="h-3 w-3 text-green-600/60" />
 																			</div>
 																		</TooltipTrigger>
 																		<TooltipContent className="bg-muted border-muted-foreground/20 text-xs">
 																			<p className="text-muted-foreground">
-																				Vision
-																				model
+																				Vision model
 																			</p>
 																		</TooltipContent>
 																	</Tooltip>
 																</TooltipProvider>
 															)}
 
-															{modelSupportsThinking(
-																model.id
-															) && (
+															{modelSupportsThinking(model.id) && (
 																<TooltipProvider>
 																	<Tooltip>
-																		<TooltipTrigger
-																			asChild
-																		>
+																		<TooltipTrigger asChild>
 																			<div className="flex items-center justify-center w-5 h-5 p-1 bg-pink-100/10 rounded-md">
 																				<LuBrain className="h-3 w-3 text-pink-600/60" />
 																			</div>
 																		</TooltipTrigger>
 																		<TooltipContent className="bg-muted border-muted-foreground/20 text-xs">
 																			<p className="text-muted-foreground">
-																				Thinking
-																				model
+																				Thinking model
 																			</p>
 																		</TooltipContent>
 																	</Tooltip>
@@ -342,13 +315,11 @@ export const ModelSelector = memo(
 
 										{/* Separator between providers (except for the last one) */}
 										{providerIndex <
-											Object.entries(groupedModels)
-												.length -
-												1 && (
+											Object.entries(groupedModels).length - 1 && (
 											<div className="border-t border-border/50" />
 										)}
 									</div>
-								)
+								),
 							)}
 						</div>
 
@@ -363,7 +334,7 @@ export const ModelSelector = memo(
 				)}
 			</div>
 		);
-	}
+	},
 );
 
 ModelSelector.displayName = "ModelSelector";

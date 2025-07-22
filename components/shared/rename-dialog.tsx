@@ -61,8 +61,7 @@ export function RenameDialog({
 				<AlertDialogHeader>
 					<AlertDialogTitle>Rename Chat</AlertDialogTitle>
 					<AlertDialogDescription>
-						Enter a new name for your chat. Keep it concise and
-						descriptive.
+						Enter a new name for your chat. Keep it concise and descriptive.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 
@@ -97,10 +96,7 @@ export function RenameDialog({
 					</div>
 				</div>
 				<AlertDialogFooter>
-					<AlertDialogCancel
-						disabled={isLoading}
-						className="cursor-pointer"
-					>
+					<AlertDialogCancel disabled={isLoading} className="cursor-pointer">
 						Cancel
 					</AlertDialogCancel>
 					<AlertDialogAction

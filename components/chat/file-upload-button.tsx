@@ -56,7 +56,7 @@ export const FileUploadButton = ({
 			const filesToAdd = validFiles.slice(0, maxFiles);
 			if (filesToAdd.length < validFiles.length) {
 				console.warn(
-					`Only ${maxFiles} files allowed. Some files were ignored.`
+					`Only ${maxFiles} files allowed. Some files were ignored.`,
 				);
 			}
 			onFilesSelected(filesToAdd);

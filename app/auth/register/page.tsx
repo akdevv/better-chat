@@ -66,10 +66,10 @@ export default function RegisterPage() {
 				router.push("/chat");
 			} else {
 				setError(
-					"Account created but failed to sign in. Please try logging in."
+					"Account created but failed to sign in. Please try logging in.",
 				);
 				toast.error(
-					"Account created but failed to sign in. Please try logging in."
+					"Account created but failed to sign in. Please try logging in.",
 				);
 			}
 		} catch (err) {
@@ -112,9 +112,7 @@ export default function RegisterPage() {
 						className="w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent"
 					/>
 					{errors.name && (
-						<p className="text-red-700 text-xs">
-							{errors.name.message}
-						</p>
+						<p className="text-red-700 text-xs">{errors.name.message}</p>
 					)}
 				</div>
 
@@ -128,9 +126,7 @@ export default function RegisterPage() {
 						className="w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent"
 					/>
 					{errors.email && (
-						<p className="text-red-700 text-xs">
-							{errors.email.message}
-						</p>
+						<p className="text-red-700 text-xs">{errors.email.message}</p>
 					)}
 				</div>
 
@@ -144,7 +140,7 @@ export default function RegisterPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700"
+								errors.password && "border-red-700",
 							)}
 						/>
 						<button
@@ -160,9 +156,7 @@ export default function RegisterPage() {
 						</button>
 					</div>
 					{errors.password && (
-						<p className="text-red-700 text-xs">
-							{errors.password.message}
-						</p>
+						<p className="text-red-700 text-xs">{errors.password.message}</p>
 					)}
 				</div>
 
@@ -191,10 +185,7 @@ export default function RegisterPage() {
 				<div className="text-center mt-6">
 					<p className="text-sm text-muted-foreground">
 						Already have an account?{" "}
-						<Link
-							href={`/auth/login`}
-							className="text-primary hover:underline"
-						>
+						<Link href={`/auth/login`} className="text-primary hover:underline">
 							Login
 						</Link>
 					</p>

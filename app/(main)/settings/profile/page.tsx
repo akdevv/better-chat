@@ -48,9 +48,7 @@ export default function ProfilePage() {
 						</Avatar>
 
 						<div className="space-y-1">
-							<h1 className="text-2xl font-bold">
-								{session?.user?.name}
-							</h1>
+							<h1 className="text-2xl font-bold">{session?.user?.name}</h1>
 							<p className="text-base text-muted-foreground">
 								{session?.user?.email}
 							</p>
@@ -83,8 +81,8 @@ export default function ProfilePage() {
 						<h3 className="text-base font-medium">Danger Zone</h3>
 					</div>
 					<p className="text-sm text-muted-foreground">
-						This will permanently delete your account and all of its
-						data. This action cannot be undone.
+						This will permanently delete your account and all of its data. This
+						action cannot be undone.
 					</p>
 					<Button variant="outline" className="cursor-pointer">
 						<MdDeleteOutline className="h-4 w-4" />

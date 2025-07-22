@@ -35,7 +35,7 @@ export const DragDropZone = ({
 				setIsDragActive(true);
 			}
 		},
-		[disabled]
+		[disabled],
 	);
 
 	const handleDragLeave = useCallback(
@@ -52,7 +52,7 @@ export const DragDropZone = ({
 				setIsDragOver(false);
 			}
 		},
-		[disabled]
+		[disabled],
 	);
 
 	const handleDragOver = useCallback(
@@ -67,7 +67,7 @@ export const DragDropZone = ({
 			// Set drop effect
 			e.dataTransfer.dropEffect = "copy";
 		},
-		[disabled]
+		[disabled],
 	);
 
 	const handleDrop = useCallback(
@@ -111,13 +111,13 @@ export const DragDropZone = ({
 				const filesToAdd = validFiles.slice(0, maxFiles);
 				if (filesToAdd.length < validFiles.length) {
 					console.warn(
-						`Only ${maxFiles} files allowed. Some files were ignored.`
+						`Only ${maxFiles} files allowed. Some files were ignored.`,
 					);
 				}
 				onFilesDropped(filesToAdd);
 			}
 		},
-		[disabled, maxFiles, onFilesDropped]
+		[disabled, maxFiles, onFilesDropped],
 	);
 
 	return (

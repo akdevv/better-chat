@@ -17,7 +17,7 @@ const formatApiKey = (key: ApiKey): ApiKeyData => {
 // Get API key for a user and provider
 export const getApiKey = async (
 	userId: string,
-	provider: string
+	provider: string,
 ): Promise<ApiKeyState | null> => {
 	try {
 		const apiKey = await db.apiKey.findFirst({
@@ -30,10 +30,7 @@ export const getApiKey = async (
 		return apiKey
 			? {
 					id: apiKey.id,
-					provider: apiKey.provider as
-						| "openai"
-						| "google"
-						| "anthropic",
+					provider: apiKey.provider as "openai" | "google" | "anthropic",
 					key: apiKey.encryptedKey,
 					isEditing: false,
 					status: "none",
@@ -41,7 +38,7 @@ export const getApiKey = async (
 					isVerifying: false,
 					isDeleting: false,
 					isSaving: false,
-			  }
+				}
 			: null;
 	} catch (error) {
 		console.error("Error fetching API key:", error);
@@ -67,7 +64,7 @@ export const saveApiKey = async (
 	userId: string,
 	provider: string,
 	apiKey: string,
-	isValidated: boolean = false
+	isValidated: boolean = false,
 ): Promise<ApiKeyData> => {
 	try {
 		const user = await db.user.findUnique({
@@ -113,7 +110,7 @@ export const saveApiKey = async (
 // Check if user has valid API key for provider
 export const checkHasValidApiKey = async (
 	userId: string,
-	provider: string
+	provider: string,
 ): Promise<boolean> => {
 	try {
 		const user = await db.user.findUnique({
@@ -142,7 +139,7 @@ export const checkHasValidApiKey = async (
 // Delete API key for a user and provider
 export const deleteApiKey = async (
 	userId: string,
-	provider: string
+	provider: string,
 ): Promise<boolean> => {
 	try {
 		const user = await db.user.findUnique({

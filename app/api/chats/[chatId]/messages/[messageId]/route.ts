@@ -5,15 +5,12 @@ import { NextRequest, NextResponse } from "next/server";
 // POST /api/chats/[chatId]/messages/[messageId] - Link files to message
 export async function POST(
 	req: NextRequest,
-	{ params }: { params: { messageId: string } }
+	{ params }: { params: Promise<{ messageId: string }> },
 ) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const { messageId } = await params;
@@ -26,7 +23,7 @@ export async function POST(
 		) {
 			return NextResponse.json(
 				{ error: "uploadedFileIds array is required" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -41,10 +38,7 @@ export async function POST(
 		});
 
 		if (!message) {
-			return NextResponse.json(
-				{ error: "Message not found" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "Message not found" }, { status: 404 });
 		}
 
 		// Verify all files belong to the user
@@ -60,7 +54,7 @@ export async function POST(
 		if (files.length !== uploadedFileIds.length) {
 			return NextResponse.json(
 				{ error: "Some files not found or don't belong to user" },
-				{ status: 400 }
+				{ status: 400 },
 			);
 		}
 
@@ -84,7 +78,7 @@ export async function POST(
 		console.error("Link files to message API error:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

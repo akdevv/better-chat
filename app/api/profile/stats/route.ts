@@ -7,10 +7,7 @@ export async function GET(req: NextRequest) {
 		const { userId } = await authenticateUser();
 
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const forceRefresh = req.nextUrl.searchParams.get("refresh") === "true";
@@ -21,7 +18,7 @@ export async function GET(req: NextRequest) {
 		console.error("Error fetching profile stats:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

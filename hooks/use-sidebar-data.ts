@@ -28,25 +28,21 @@ export function useSidebarData() {
 	const [optimisticChats, setOptimisticChats] = useOptimistic(
 		chats,
 		(state, update: { type: string; payload: any }) => {
-			console.log("🔄 Optimistic update:", update.type, update.payload);
 			switch (update.type) {
 				case "ADD":
 					return [update.payload, ...state].sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 				case "UPDATE":
 					return state
 						.map((chat) =>
-							chat.id === update.payload.id
-								? update.payload
-								: chat
+							chat.id === update.payload.id ? update.payload : chat,
 						)
 						.sort(
 							(a, b) =>
 								new Date(b.updatedAt).getTime() -
-								new Date(a.updatedAt).getTime()
+								new Date(a.updatedAt).getTime(),
 						);
 				case "DELETE":
 					return state.filter((chat) => chat.id !== update.payload);
@@ -54,7 +50,7 @@ export function useSidebarData() {
 					return state.map((chat) =>
 						chat.id === update.payload.id
 							? { ...chat, title: update.payload.title }
-							: chat
+							: chat,
 					);
 				case "UPDATE_TIMESTAMP":
 					return state
@@ -63,26 +59,22 @@ export function useSidebarData() {
 								? {
 										...chat,
 										updatedAt: update.payload.updatedAt,
-								  }
-								: chat
+									}
+								: chat,
 						)
 						.sort(
 							(a, b) =>
 								new Date(b.updatedAt).getTime() -
-								new Date(a.updatedAt).getTime()
+								new Date(a.updatedAt).getTime(),
 						);
 				default:
 					return state;
 			}
-		}
+		},
 	);
 
 	// Get cached data (no expiration)
 	const getCachedData = useCallback(() => {
-		console.log(
-			"📦 Getting cached data:",
-			cache.current ? "Found" : "Not found"
-		);
 		return cache.current;
 	}, []);
 
@@ -90,19 +82,13 @@ export function useSidebarData() {
 	const getCurrentChat = useCallback(
 		(chatId: string): SidebarChat | undefined => {
 			const chat = optimisticChats.find((chat) => chat.id === chatId);
-			console.log(
-				"🔍 Getting current chat:",
-				chatId,
-				chat ? "Found" : "Not found"
-			);
 			return chat;
 		},
-		[optimisticChats]
+		[optimisticChats],
 	);
 
 	// Invalidate cache and fetch in background
 	const invalidateCacheAndRefetch = useCallback(async () => {
-		console.log("🗑️ Invalidating cache and fetching in background");
 		cache.current = null;
 
 		// Fetch in background without loading states
@@ -116,12 +102,7 @@ export function useSidebarData() {
 			const newChats = data.chats;
 			newChats.sort(
 				(a: SidebarChat, b: SidebarChat) =>
-					new Date(b.updatedAt).getTime() -
-					new Date(a.updatedAt).getTime()
-			);
-
-			console.log(
-				"🔄 Background fetch completed, updating cache and state"
+					new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 			);
 
 			// Update cache
@@ -141,12 +122,9 @@ export function useSidebarData() {
 
 	// GET /chats => list of chats (first 30 only)
 	const fetchChats = useCallback(async () => {
-		console.log("📡 Fetching chats: Initial load");
-
 		// Use cache for initial load
 		const cached = getCachedData();
 		if (cached) {
-			console.log("✅ Using cached data, skipping API call");
 			setChats(cached.data);
 			setTotalCount(cached.total);
 			return;
@@ -155,8 +133,6 @@ export function useSidebarData() {
 		setIsLoading(true);
 
 		try {
-			console.log("📡 Making API call for first 30 chats");
-
 			const res = await fetch(`/api/chats?limit=${ITEMS_PER_PAGE}`);
 
 			if (!res.ok) {
@@ -164,25 +140,17 @@ export function useSidebarData() {
 			}
 
 			const data = await res.json();
-			console.log(
-				"📡 API response received:",
-				data.chats.length,
-				"chats, total:",
-				data.pagination.total
-			);
 
 			const newChats = data.chats;
 			newChats.sort(
 				(a: SidebarChat, b: SidebarChat) =>
-					new Date(b.updatedAt).getTime() -
-					new Date(a.updatedAt).getTime()
+					new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 			);
 
 			setChats(newChats);
 			setTotalCount(data.pagination.total);
 
 			// Update cache
-			console.log("💾 Updating cache with new data");
 			cache.current = {
 				data: newChats,
 				timestamp: Date.now(),
@@ -198,8 +166,6 @@ export function useSidebarData() {
 	// DELETE /chats/:chatId => delete a chat
 	const deleteChat = useCallback(
 		async (chatId: string) => {
-			console.log("🗑️ Deleting chat:", chatId);
-
 			// Update actual state immediately for instant feedback
 			setChats((prev) => prev.filter((chat) => chat.id !== chatId));
 			setTotalCount((prev) => Math.max(0, prev - 1));
@@ -207,7 +173,7 @@ export function useSidebarData() {
 			// Update cache immediately if it exists
 			if (cache.current) {
 				cache.current.data = cache.current.data.filter(
-					(chat) => chat.id !== chatId
+					(chat) => chat.id !== chatId,
 				);
 				cache.current.total = Math.max(0, cache.current.total - 1);
 			}
@@ -229,8 +195,6 @@ export function useSidebarData() {
 					throw new Error("Failed to delete chat");
 				}
 
-				console.log("✅ Chat deleted successfully");
-
 				// Invalidate cache and fetch in background
 				await invalidateCacheAndRefetch();
 			} catch (error) {
@@ -239,14 +203,12 @@ export function useSidebarData() {
 				fetchChats();
 			}
 		},
-		[setOptimisticChats, invalidateCacheAndRefetch, fetchChats]
+		[setOptimisticChats, invalidateCacheAndRefetch, fetchChats],
 	);
 
 	// PATCH /chats/:chatId => (rename chat)
 	const renameChat = useCallback(
 		async (chatId: string, newTitle: string) => {
-			console.log("✏️ Renaming chat:", chatId, "to:", newTitle);
-
 			const chat = optimisticChats.find((chat) => chat.id === chatId);
 			if (!chat) {
 				console.error("❌ Chat not found for renaming:", chatId);
@@ -264,12 +226,11 @@ export function useSidebarData() {
 				const updated = prev.map((chat) =>
 					chat.id === chatId
 						? { ...chat, title: newTitle, updatedAt: new Date() }
-						: chat
+						: chat,
 				);
 				return updated.sort(
 					(a, b) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
+						new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 				);
 			});
 
@@ -282,13 +243,12 @@ export function useSidebarData() {
 									...chat,
 									title: newTitle,
 									updatedAt: new Date(),
-							  }
-							: chat
+								}
+							: chat,
 					)
 					.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 			}
 
@@ -311,19 +271,15 @@ export function useSidebarData() {
 				}
 
 				const serverUpdatedChat = await res.json();
-				console.log("✅ Chat renamed successfully");
 
 				// Update actual state with server response
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === serverUpdatedChat.id
-							? serverUpdatedChat
-							: chat
+						chat.id === serverUpdatedChat.id ? serverUpdatedChat : chat,
 					);
 					return updated.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 				});
 
@@ -340,14 +296,12 @@ export function useSidebarData() {
 			setOptimisticChats,
 			invalidateCacheAndRefetch,
 			fetchChats,
-		]
+		],
 	);
 
 	// PATCH /chats/:chatId => (toggle star)
 	const toggleStar = useCallback(
 		async (chatId: string) => {
-			console.log("⭐ Toggling star for chat:", chatId);
-
 			const chat = optimisticChats.find((chat) => chat.id === chatId);
 			if (!chat) {
 				console.error("❌ Chat not found for starring:", chatId);
@@ -368,13 +322,12 @@ export function useSidebarData() {
 								...chat,
 								isStarred: !chat.isStarred,
 								updatedAt: new Date(),
-						  }
-						: chat
+							}
+						: chat,
 				);
 				return updated.sort(
 					(a, b) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
+						new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 				);
 			});
 
@@ -387,13 +340,12 @@ export function useSidebarData() {
 									...chat,
 									isStarred: !chat.isStarred,
 									updatedAt: new Date(),
-							  }
-							: chat
+								}
+							: chat,
 					)
 					.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 			}
 
@@ -416,19 +368,15 @@ export function useSidebarData() {
 				}
 
 				const serverUpdatedChat = await res.json();
-				console.log("✅ Chat star toggled successfully");
 
 				// Update actual state with server response
 				setChats((prev) => {
 					const updated = prev.map((chat) =>
-						chat.id === serverUpdatedChat.id
-							? serverUpdatedChat
-							: chat
+						chat.id === serverUpdatedChat.id ? serverUpdatedChat : chat,
 					);
 					return updated.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 				});
 
@@ -445,20 +393,17 @@ export function useSidebarData() {
 			setOptimisticChats,
 			invalidateCacheAndRefetch,
 			fetchChats,
-		]
+		],
 	);
 
 	const addChat = useCallback(
 		async (newChat: SidebarChat) => {
-			console.log("➕ Adding new chat:", newChat.id);
-
 			// Update actual state immediately for instant feedback
 			setChats((prev) =>
 				[newChat, ...prev].sort(
 					(a, b) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
-				)
+						new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+				),
 			);
 			setTotalCount((prev) => prev + 1);
 
@@ -466,8 +411,7 @@ export function useSidebarData() {
 			if (cache.current) {
 				cache.current.data = [newChat, ...cache.current.data].sort(
 					(a, b) =>
-						new Date(b.updatedAt).getTime() -
-						new Date(a.updatedAt).getTime()
+						new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 				);
 				cache.current.total = cache.current.total + 1;
 			}
@@ -476,33 +420,24 @@ export function useSidebarData() {
 			startTransition(() => {
 				setOptimisticChats({ type: "ADD", payload: newChat });
 			});
-
-			console.log("✅ Chat added to sidebar immediately");
 		},
-		[setOptimisticChats]
+		[setOptimisticChats],
 	);
 
 	// Update chat title function (used by event listener)
 	const updateChatTitle = useCallback(
 		(chatId: string, newTitle: string) => {
-			console.log(
-				"🏷️ Updating chat title via event:",
-				chatId,
-				"to:",
-				newTitle
-			);
-
 			// Update actual state immediately for instant feedback
 			setChats((prev) =>
 				prev.map((chat) =>
-					chat.id === chatId ? { ...chat, title: newTitle } : chat
-				)
+					chat.id === chatId ? { ...chat, title: newTitle } : chat,
+				),
 			);
 
 			// Update cache if it exists
 			if (cache.current) {
 				cache.current.data = cache.current.data.map((chat) =>
-					chat.id === chatId ? { ...chat, title: newTitle } : chat
+					chat.id === chatId ? { ...chat, title: newTitle } : chat,
 				);
 			}
 
@@ -513,45 +448,30 @@ export function useSidebarData() {
 					payload: { id: chatId, title: newTitle },
 				});
 			});
-
-			console.log("✅ Chat title updated in sidebar via event");
 		},
-		[setOptimisticChats]
+		[setOptimisticChats],
 	);
 
 	// Update chat timestamp function (used by event listener for message activity)
 	const updateChatTimestamp = useCallback(
 		(chatId: string, updatedAt: Date) => {
-			console.log(
-				"⏰ Updating chat timestamp via event:",
-				chatId,
-				"to:",
-				updatedAt
-			);
-
 			// Update actual state immediately for instant feedback
 			setChats((prev) =>
 				prev
-					.map((chat) =>
-						chat.id === chatId ? { ...chat, updatedAt } : chat
-					)
+					.map((chat) => (chat.id === chatId ? { ...chat, updatedAt } : chat))
 					.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
-					)
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+					),
 			);
 
 			// Update cache if it exists
 			if (cache.current) {
 				cache.current.data = cache.current.data
-					.map((chat) =>
-						chat.id === chatId ? { ...chat, updatedAt } : chat
-					)
+					.map((chat) => (chat.id === chatId ? { ...chat, updatedAt } : chat))
 					.sort(
 						(a, b) =>
-							new Date(b.updatedAt).getTime() -
-							new Date(a.updatedAt).getTime()
+							new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
 					);
 			}
 
@@ -562,34 +482,26 @@ export function useSidebarData() {
 					payload: { id: chatId, updatedAt },
 				});
 			});
-
-			console.log("✅ Chat timestamp updated in sidebar via event");
 		},
-		[setOptimisticChats]
+		[setOptimisticChats],
 	);
 
 	// Listen for chat creation events
 	useEffect(() => {
 		const handleChatCreated = (event: CustomEvent) => {
 			const { chat } = event.detail;
-			console.log("📡 Received chat created event:", chat);
 			addChat(chat);
 		};
 
 		// Add event listener for chat creation
-		window.addEventListener(
-			"chatCreated",
-			handleChatCreated as EventListener
-		);
-		console.log("👂 Listening for chatCreated events");
+		window.addEventListener("chatCreated", handleChatCreated as EventListener);
 
 		// Cleanup on unmount
 		return () => {
 			window.removeEventListener(
 				"chatCreated",
-				handleChatCreated as EventListener
+				handleChatCreated as EventListener,
 			);
-			console.log("🧹 Removed chatCreated event listener");
 		};
 	}, [addChat]);
 
@@ -597,24 +509,21 @@ export function useSidebarData() {
 	useEffect(() => {
 		const handleTitleUpdate = (event: CustomEvent) => {
 			const { chatId, title } = event.detail;
-			console.log("📡 Received title update event:", { chatId, title });
 			updateChatTitle(chatId, title);
 		};
 
 		// Add event listener for title updates
 		window.addEventListener(
 			"chatTitleUpdated",
-			handleTitleUpdate as EventListener
+			handleTitleUpdate as EventListener,
 		);
-		console.log("👂 Listening for chatTitleUpdated events");
 
 		// Cleanup on unmount
 		return () => {
 			window.removeEventListener(
 				"chatTitleUpdated",
-				handleTitleUpdate as EventListener
+				handleTitleUpdate as EventListener,
 			);
-			console.log("🧹 Removed chatTitleUpdated event listener");
 		};
 	}, [updateChatTitle]);
 
@@ -622,33 +531,23 @@ export function useSidebarData() {
 	useEffect(() => {
 		const handleChatUpdated = (event: CustomEvent) => {
 			const { chatId, updatedAt } = event.detail;
-			console.log("📡 Received chat updated event:", {
-				chatId,
-				updatedAt,
-			});
 			updateChatTimestamp(chatId, new Date(updatedAt));
 		};
 
 		// Add event listener for chat updates
-		window.addEventListener(
-			"chatUpdated",
-			handleChatUpdated as EventListener
-		);
-		console.log("👂 Listening for chatUpdated events");
+		window.addEventListener("chatUpdated", handleChatUpdated as EventListener);
 
 		// Cleanup on unmount
 		return () => {
 			window.removeEventListener(
 				"chatUpdated",
-				handleChatUpdated as EventListener
+				handleChatUpdated as EventListener,
 			);
-			console.log("🧹 Removed chatUpdated event listener");
 		};
 	}, [updateChatTimestamp]);
 
 	// Initial load
 	useEffect(() => {
-		console.log("🚀 Initial load effect triggered");
 		fetchChats();
 	}, []);
 
@@ -661,7 +560,6 @@ export function useSidebarData() {
 
 		// Actions
 		refresh: () => {
-			console.log("🔄 Manual refresh requested");
 			cache.current = null;
 			fetchChats();
 		},

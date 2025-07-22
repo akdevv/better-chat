@@ -29,8 +29,7 @@ export const useApiKeys = () => {
 	const generateMaskedKey = (provider: string) => {
 		const patterns = {
 			openai: "sk-••••••••••••••••••••••••••••••••••••••••••••••••",
-			anthropic:
-				"sk-ant-••••••••••••••••••••••••••••••••••••••••••••••••",
+			anthropic: "sk-ant-••••••••••••••••••••••••••••••••••••••••••••••••",
 			google: "AIza••••••••••••••••••••••••••••••••••••",
 		};
 		return (
@@ -88,9 +87,7 @@ export const useApiKeys = () => {
 
 			const data = await res.json();
 			if (data.hasValidKey) {
-				const apiKeyResponse = await fetch(
-					`/api/keys/${providerId}/decrypt`,
-				);
+				const apiKeyResponse = await fetch(`/api/keys/${providerId}/decrypt`);
 				if (!apiKeyResponse.ok) {
 					throw new Error("Failed to decrypt API key");
 				}
@@ -139,9 +136,7 @@ export const useApiKeys = () => {
 		} else {
 			setApiKeys((prev) =>
 				prev.map((key) =>
-					key.id === providerId
-						? { ...key, isEditing: !key.isEditing }
-						: key,
+					key.id === providerId ? { ...key, isEditing: !key.isEditing } : key,
 				),
 			);
 		}
@@ -149,9 +144,7 @@ export const useApiKeys = () => {
 
 	const handleInputChange = (providerId: string, value: string) => {
 		setApiKeys((prev) =>
-			prev.map((key) =>
-				key.id === providerId ? { ...key, key: value } : key,
-			),
+			prev.map((key) => (key.id === providerId ? { ...key, key: value } : key)),
 		);
 	};
 
@@ -219,9 +212,7 @@ export const useApiKeys = () => {
 	const cancelEdit = (providerId: string) => {
 		setApiKeys((prev) =>
 			prev.map((key) =>
-				key.id === providerId
-					? { ...key, isEditing: false, key: "" }
-					: key,
+				key.id === providerId ? { ...key, isEditing: false, key: "" } : key,
 			),
 		);
 	};
@@ -241,9 +232,7 @@ export const useApiKeys = () => {
 			if (!res.ok) {
 				setApiKeys((prev) =>
 					prev.map((key) =>
-						key.id === providerId
-							? { ...key, isDeleting: false }
-							: key,
+						key.id === providerId ? { ...key, isDeleting: false } : key,
 					),
 				);
 				throw new Error("Failed to delete API key");

@@ -42,7 +42,7 @@ export const registerUser = async (data: RegisterUserProps) => {
 		return user;
 	} catch (error) {
 		throw new Error(
-			error instanceof Error ? error.message : "An error occurred!"
+			error instanceof Error ? error.message : "An error occurred!",
 		);
 	}
 };

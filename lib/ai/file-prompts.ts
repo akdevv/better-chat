@@ -58,11 +58,14 @@ export const generateFileContextPrompt = (files: FileData[]): string => {
 	});
 
 	// Group files by category
-	const filesByCategory = categorizedFiles.reduce((acc, file) => {
-		if (!acc[file.category]) acc[file.category] = [];
-		acc[file.category].push(file);
-		return acc;
-	}, {} as Record<FileCategory, typeof categorizedFiles>);
+	const filesByCategory = categorizedFiles.reduce(
+		(acc, file) => {
+			if (!acc[file.category]) acc[file.category] = [];
+			acc[file.category].push(file);
+			return acc;
+		},
+		{} as Record<FileCategory, typeof categorizedFiles>,
+	);
 
 	let systemPrompt = `The user has attached ${files.length} file(s) to this conversation. Please analyze and help them with these files.\n\n`;
 
@@ -72,8 +75,7 @@ export const generateFileContextPrompt = (files: FileData[]): string => {
 			systemPrompt += `**${category.toUpperCase()} FILES (${
 				categoryFiles.length
 			}):**\n`;
-			systemPrompt +=
-				FILE_ANALYSIS_PROMPTS[category as FileCategory] + "\n\n";
+			systemPrompt += FILE_ANALYSIS_PROMPTS[category as FileCategory] + "\n\n";
 
 			// List the files in this category
 			systemPrompt += `Files in this category:\n`;
@@ -102,7 +104,7 @@ Please analyze the attached files and provide your insights based on the user's 
 export const fetchFileContent = async (
 	url: string,
 	mimeType: string,
-	size: number
+	size: number,
 ): Promise<string | null> => {
 	try {
 		if (size > MAX_FILE_SIZE_FOR_CONTENT) {

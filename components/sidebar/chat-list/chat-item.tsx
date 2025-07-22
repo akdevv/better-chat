@@ -24,11 +24,7 @@ export function ChatItem({ chat }: { chat: SidebarChat }) {
 					{chat.title}
 				</p>
 			</div>
-			<ChatDropdown
-				chat={chat}
-				isOpen={menuOpen}
-				onOpenChange={setMenuOpen}
-			/>
+			<ChatDropdown chat={chat} isOpen={menuOpen} onOpenChange={setMenuOpen} />
 		</Link>
 	);
 }

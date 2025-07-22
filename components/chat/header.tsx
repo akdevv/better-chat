@@ -15,9 +15,7 @@ export function Header() {
 	return (
 		<header className="flex items-center justify-between px-4 py-3">
 			<div className="flex-1 min-w-0">
-				<h1 className="font-bold truncate text-foreground">
-					{chatTitle}
-				</h1>
+				<h1 className="font-bold truncate text-foreground">{chatTitle}</h1>
 			</div>
 			<Button
 				variant="outline"

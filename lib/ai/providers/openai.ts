@@ -3,7 +3,7 @@ import { getModelById } from "@/lib/ai/models";
 import { AIError, AIStreamOptions } from "@/lib/types/ai";
 
 export const createOpenAIStream = async (
-	options: AIStreamOptions
+	options: AIStreamOptions,
 ): Promise<ReadableStream<Uint8Array>> => {
 	const {
 		messages,
@@ -33,10 +33,7 @@ export const createOpenAIStream = async (
 				const chatCompletion = await openai.chat.completions.create({
 					model: modelInfo.id,
 					messages: messages.map((msg) => ({
-						role: msg.role.toLowerCase() as
-							| "user"
-							| "assistant"
-							| "system",
+						role: msg.role.toLowerCase() as "user" | "assistant" | "system",
 						content: msg.content,
 					})),
 					stream: true,
@@ -72,7 +69,7 @@ export const createOpenAIStream = async (
 				} else {
 					console.error("OpenAI streaming error:", error);
 					const aiError: AIError = new Error(
-						`OpenAI API error: ${err.message ?? "Unknown error"}`
+						`OpenAI API error: ${err.message ?? "Unknown error"}`,
 					) as AIError;
 					aiError.provider = "openai";
 					aiError.code = err.code ?? "unknown";

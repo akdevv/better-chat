@@ -27,10 +27,7 @@ const FilePreviewCard = ({
 }) => {
 	const [isHovered, setIsHovered] = useState(false);
 
-	function truncateFileName(
-		fileName: string,
-		maxLength: number = 16
-	): string {
+	function truncateFileName(fileName: string, maxLength: number = 16): string {
 		if (fileName.length <= maxLength) return fileName;
 
 		const lastDotIndex = fileName.lastIndexOf(".");
@@ -78,7 +75,7 @@ const FilePreviewCard = ({
 			className={cn(
 				"relative group p-3 rounded-lg border transition-all duration-200",
 				"bg-muted hover:bg-muted/70",
-				file.status === "error" && "border-red-200 bg-red-50/30"
+				file.status === "error" && "border-red-200 bg-red-50/30",
 			)}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
@@ -113,9 +110,7 @@ const FilePreviewCard = ({
 					</div>
 				</div>
 				{file.status === "error" ? (
-					<div className="mt-2 text-xs text-red-400">
-						Error uploading
-					</div>
+					<div className="mt-2 text-xs text-red-400">Error uploading</div>
 				) : (
 					<div className="flex-1 min-w-0">
 						<div className="mb-1">
@@ -147,15 +142,11 @@ export const InputFilePreview = ({
 		<div
 			className={cn(
 				"grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3",
-				className
+				className,
 			)}
 		>
 			{files.map((file) => (
-				<FilePreviewCard
-					key={file.id}
-					file={file}
-					onRemove={onRemoveFile}
-				/>
+				<FilePreviewCard key={file.id} file={file} onRemove={onRemoveFile} />
 			))}
 		</div>
 	);

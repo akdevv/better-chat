@@ -13,7 +13,7 @@ interface ChatFilePreviewProps {
 const FilePreviewCard = ({ file }: { file: MessageFile }) => {
 	const truncateFileName = (
 		fileName: string,
-		maxLength: number = 18
+		maxLength: number = 18,
 	): string => {
 		if (fileName.length <= maxLength) return fileName;
 

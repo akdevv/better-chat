@@ -35,9 +35,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 	// Load settings from localStorage on mount
 	useEffect(() => {
 		const savedTheme = localStorage.getItem("theme") as Theme;
-		const savedAccentColor = localStorage.getItem(
-			"accentColor",
-		) as AccentColor;
+		const savedAccentColor = localStorage.getItem("accentColor") as AccentColor;
 		const savedFont = localStorage.getItem("font") as Font;
 
 		if (savedTheme) setTheme(savedTheme);
@@ -53,9 +51,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 		root.classList.remove("light", "dark");
 
 		if (theme === "system") {
-			const systemTheme = window.matchMedia(
-				"(prefers-color-scheme: dark)",
-			).matches
+			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+				.matches
 				? "dark"
 				: "light";
 			root.classList.add(systemTheme);

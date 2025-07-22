@@ -7,20 +7,14 @@ export async function POST(req: NextRequest) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const formData = await req.formData();
 		const files = formData.getAll("files") as File[];
 
 		if (!files || files.length === 0) {
-			return NextResponse.json(
-				{ error: "No files provided" },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: "No files provided" }, { status: 400 });
 		}
 
 		const processedFiles = await uploadFile(files, userId);
@@ -33,7 +27,7 @@ export async function POST(req: NextRequest) {
 		console.error("Error uploading files:", error);
 		return NextResponse.json(
 			{ error: "Failed to upload files" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

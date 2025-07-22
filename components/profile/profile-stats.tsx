@@ -133,7 +133,7 @@ export default function ProfileStats() {
 					label: "Tokens Used",
 					color: "bg-purple-500",
 				},
-		  ]
+			]
 		: [];
 
 	if (error) {
@@ -149,9 +149,7 @@ export default function ProfileStats() {
 						className="cursor-pointer gap-1 h-8 px-2 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/30 transition-all text-xs opacity-70 hover:opacity-100"
 					>
 						<IoRefreshOutline
-							className={`h-3 w-3 ${
-								isRefreshing ? "animate-spin" : ""
-							}`}
+							className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
 						/>
 						{isRefreshing ? "Refreshing..." : "Refresh"}
 					</Button>
@@ -177,9 +175,7 @@ export default function ProfileStats() {
 					className="cursor-pointer gap-1 h-8 px-2 text-muted-foreground/60 hover:text-muted-foreground hover:bg-muted/30 transition-all text-xs opacity-70 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
 				>
 					<IoRefreshOutline
-						className={`h-3 w-3 ${
-							isRefreshing ? "animate-spin" : ""
-						}`}
+						className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`}
 					/>
 					{isRefreshing ? "Refreshing..." : "Refresh"}
 				</Button>
@@ -196,7 +192,7 @@ export default function ProfileStats() {
 								color="bg-gray-300"
 								isLoading={true}
 							/>
-					  ))
+						))
 					: statItems.map((stat, index) => (
 							<StatCard
 								key={index}
@@ -206,7 +202,7 @@ export default function ProfileStats() {
 								color={stat.color}
 								isLoading={false}
 							/>
-					  ))}
+						))}
 			</div>
 		</div>
 	);

@@ -3,7 +3,7 @@ import { getModelById } from "@/lib/ai/models";
 import { AIStreamOptions } from "@/lib/types/ai";
 
 export const createAnthropicStream = async (
-	options: AIStreamOptions
+	options: AIStreamOptions,
 ): Promise<ReadableStream<Uint8Array>> => {
 	const {
 		messages,
@@ -32,7 +32,7 @@ export const createAnthropicStream = async (
 		.map((msg) =>
 			msg.role === "USER"
 				? { role: "user" as const, content: msg.content }
-				: { role: "assistant" as const, content: msg.content }
+				: { role: "assistant" as const, content: msg.content },
 		);
 
 	return new ReadableStream({
@@ -68,9 +68,7 @@ export const createAnthropicStream = async (
 					) {
 						const content = chunk.delta.text || "";
 						if (content) {
-							controller.enqueue(
-								new TextEncoder().encode(content)
-							);
+							controller.enqueue(new TextEncoder().encode(content));
 						}
 					}
 				}

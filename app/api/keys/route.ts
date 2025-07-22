@@ -10,10 +10,7 @@ export async function GET() {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 },
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const apiKeys: ApiKeyData[] = await getApiKeys(userId);
@@ -35,10 +32,7 @@ export async function POST(req: NextRequest) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 },
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const { provider, apiKey } = await req.json();
@@ -54,18 +48,12 @@ export async function POST(req: NextRequest) {
 		// Validate provider
 		const validProviders = ["openai", "google", "anthropic"];
 		if (!validProviders.includes(provider.toLowerCase())) {
-			return NextResponse.json(
-				{ error: "Invalid provider" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
 		}
 
 		const verification = await verifyApiKey(provider, apiKey);
 		if (!verification.success) {
-			return NextResponse.json(
-				{ error: verification.error },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: verification.error }, { status: 400 });
 		}
 
 		// Save API key

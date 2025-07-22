@@ -67,9 +67,7 @@ export default function LoginPage() {
 	return (
 		<div className="mx-auto w-full max-w-md">
 			<div className="text-center md:text-left mb-8">
-				<h1 className="text-3xl md:text-4xl font-bold mb-2">
-					Welcome back
-				</h1>
+				<h1 className="text-3xl md:text-4xl font-bold mb-2">Welcome back</h1>
 				<p className="text-muted-foreground">
 					Please enter your details to sign in
 				</p>
@@ -93,13 +91,11 @@ export default function LoginPage() {
 						disabled={isPending}
 						className={cn(
 							"w-full border border-border p-3 rounded-md focus:outline-none focus:none focus:ring-transparent",
-							errors.email && "border-2 border-red-700"
+							errors.email && "border-2 border-red-700",
 						)}
 					/>
 					{errors.email && (
-						<p className="text-red-700 text-xs">
-							{errors.email.message}
-						</p>
+						<p className="text-red-700 text-xs">{errors.email.message}</p>
 					)}
 				</div>
 
@@ -113,7 +109,7 @@ export default function LoginPage() {
 							disabled={isPending}
 							className={cn(
 								"w-full p-3 focus:outline-none focus:none focus:ring-transparent",
-								errors.password && "border-red-700"
+								errors.password && "border-red-700",
 							)}
 						/>
 						<button
@@ -129,18 +125,13 @@ export default function LoginPage() {
 						</button>
 					</div>
 					{errors.password && (
-						<p className="text-red-700 text-xs">
-							{errors.password.message}
-						</p>
+						<p className="text-red-700 text-xs">{errors.password.message}</p>
 					)}
 				</div>
 
 				{/* Remember me & Forgot password */}
 				<div className="flex justify-end w-full">
-					<Link
-						href=""
-						className="text-sm text-primary hover:underline"
-					>
+					<Link href="" className="text-sm text-primary hover:underline">
 						Forgot password?
 					</Link>
 				</div>

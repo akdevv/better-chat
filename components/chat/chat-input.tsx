@@ -103,7 +103,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 			linkFilesToMessage,
 			onSendMessage,
 			clearFiles,
-		]
+		],
 	);
 
 	// Handle keyboard shortcuts
@@ -121,7 +121,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 				onCancel();
 			}
 		},
-		[handleSubmit, onCancel]
+		[handleSubmit, onCancel],
 	);
 
 	const hasContent = input.trim() || attachedFiles.length > 0;
@@ -182,20 +182,11 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 								{/* Actions Button */}
 								<div className="flex items-center gap-1 sm:gap-2 ml-auto">
 									<Button
-										type={
-											chatState.isStreamingResponse
-												? "button"
-												: "submit"
-										}
+										type={chatState.isStreamingResponse ? "button" : "submit"}
 										size="sm"
-										onClick={
-											chatState.isStreamingResponse
-												? onStop
-												: undefined
-										}
+										onClick={chatState.isStreamingResponse ? onStop : undefined}
 										disabled={
-											(!hasContent &&
-												!chatState.isStreamingResponse) ||
+											(!hasContent && !chatState.isStreamingResponse) ||
 											isCreatingChat
 										}
 										className="h-7 w-7 sm:h-8 sm:w-8 p-0 bg-primary hover:bg-primary/90 text-primary-foreground rounded-md sm:rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
@@ -205,16 +196,12 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 										) : chatState.isStreamingResponse ? (
 											<>
 												<FaRegCircleStop className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-												<span className="sr-only">
-													Stop generating
-												</span>
+												<span className="sr-only">Stop generating</span>
 											</>
 										) : (
 											<>
 												<FaArrowUpLong className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-												<span className="sr-only">
-													Send message
-												</span>
+												<span className="sr-only">Send message</span>
 											</>
 										)}
 									</Button>

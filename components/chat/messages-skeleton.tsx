@@ -48,4 +48,4 @@ export function MessagesSkeleton() {
 			</div>
 		</div>
 	);
-} 
+}

@@ -3,13 +3,7 @@ import { cn } from "@/lib/utils";
 
 interface SpinnerProps {
 	size?: "sm" | "md" | "lg" | "xl";
-	color?:
-		| "primary"
-		| "secondary"
-		| "muted"
-		| "destructive"
-		| "white"
-		| "dark";
+	color?: "primary" | "secondary" | "muted" | "destructive" | "white" | "dark";
 	className?: string;
 }
 

@@ -2,8 +2,7 @@ import crypto from "crypto";
 
 const ALGORITHM = "aes-256-cbc";
 const ENCRYPTION_KEY =
-	process.env.ENCRYPTION_KEY ||
-	"x4ZxiOelxRwCmn5++ogJpj5zxnMbpAjdNq+QetGriig=";
+	process.env.ENCRYPTION_KEY || "x4ZxiOelxRwCmn5++ogJpj5zxnMbpAjdNq+QetGriig=";
 
 export function encrypt(text: string, userId: string) {
 	try {

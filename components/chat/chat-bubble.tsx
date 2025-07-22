@@ -50,9 +50,7 @@ export function ChatBubble() {
 		while ((match = thinkRegex.exec(content)) !== null) {
 			// Add content before the thinking block
 			if (match.index > lastIndex) {
-				const beforeContent = content
-					.slice(lastIndex, match.index)
-					.trim();
+				const beforeContent = content.slice(lastIndex, match.index).trim();
 				if (beforeContent) {
 					parts.push({ type: "content", content: beforeContent });
 				}
@@ -101,8 +99,7 @@ export function ChatBubble() {
 		>
 			{chatState.messages.map((message) => {
 				const isUserMessage = message.role === "USER";
-				const isThinkingExpanded =
-					expandedThinking[message.id] || false;
+				const isThinkingExpanded = expandedThinking[message.id] || false;
 				const hasFiles = message.files && message.files.length > 0;
 
 				return (
@@ -114,9 +111,7 @@ export function ChatBubble() {
 					>
 						<div
 							className={`${
-								isUserMessage
-									? "flex flex-col items-end max-w-[80%]"
-									: "w-full"
+								isUserMessage ? "flex flex-col items-end max-w-[80%]" : "w-full"
 							}`}
 						>
 							{/* Attached Files (for user messages) */}
@@ -137,87 +132,68 @@ export function ChatBubble() {
 										message.content
 									) : (
 										<div className="space-y-4">
-											{formatContent(message.content).map(
-												(part, partIndex) => (
-													<div key={partIndex}>
-														{part.type ===
-														"thinking" ? (
-															<div className="mb-4">
-																<button
-																	onClick={() =>
-																		toggleThinking(
-																			message.id
-																		)
-																	}
-																	className="group w-full flex items-center justify-between p-3 bg-muted/15 hover:bg-muted/25 transition-all duration-200 rounded-lg border border-transparent hover:border-muted/30"
-																>
-																	<div className="flex items-center gap-2.5">
-																		<div className="w-5 h-5 rounded-md bg-muted/30 flex items-center justify-center">
-																			<PiBrain className="w-3 h-3 text-muted-foreground/70" />
-																		</div>
-																		<span className="text-xs font-medium text-muted-foreground/70">
-																			Thinking
-																		</span>
+											{formatContent(message.content).map((part, partIndex) => (
+												<div key={partIndex}>
+													{part.type === "thinking" ? (
+														<div className="mb-4">
+															<button
+																onClick={() => toggleThinking(message.id)}
+																className="group w-full flex items-center justify-between p-3 bg-muted/15 hover:bg-muted/25 transition-all duration-200 rounded-lg border border-transparent hover:border-muted/30"
+															>
+																<div className="flex items-center gap-2.5">
+																	<div className="w-5 h-5 rounded-md bg-muted/30 flex items-center justify-center">
+																		<PiBrain className="w-3 h-3 text-muted-foreground/70" />
 																	</div>
-																	{isThinkingExpanded ? (
-																		<FiChevronUp className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors" />
-																	) : (
-																		<FiChevronDown className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors" />
-																	)}
-																</button>
-																{isThinkingExpanded && (
-																	<div className="mt-2 p-3 bg-muted/8 rounded-lg border-l-2 border-muted/25">
-																		<MarkdownRenderer
-																			content={
-																				part.content
-																			}
-																			className="text-xs text-muted-foreground/75 prose-sm max-w-none [&>*]:my-1.5 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-																		/>
-																	</div>
+																	<span className="text-xs font-medium text-muted-foreground/70">
+																		Thinking
+																	</span>
+																</div>
+																{isThinkingExpanded ? (
+																	<FiChevronUp className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors" />
+																) : (
+																	<FiChevronDown className="w-3.5 h-3.5 text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors" />
 																)}
-															</div>
-														) : (
-															<MarkdownRenderer
-																content={
-																	part.content
-																}
-																className="text-sm leading-relaxed prose max-w-none dark:prose-invert"
-															/>
-														)}
-													</div>
-												)
-											)}
+															</button>
+															{isThinkingExpanded && (
+																<div className="mt-2 p-3 bg-muted/8 rounded-lg border-l-2 border-muted/25">
+																	<MarkdownRenderer
+																		content={part.content}
+																		className="text-xs text-muted-foreground/75 prose-sm max-w-none [&>*]:my-1.5 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+																	/>
+																</div>
+															)}
+														</div>
+													) : (
+														<MarkdownRenderer
+															content={part.content}
+															className="text-sm leading-relaxed prose max-w-none dark:prose-invert"
+														/>
+													)}
+												</div>
+											))}
 										</div>
 									)}
 								</div>
 							</div>
 
 							{/* Model Details and Copy Button */}
-							{!isUserMessage &&
-								!chatState.isStreamingResponse && (
-									<div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-										<span>
-											{getModelName(message.model)}
-										</span>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="h-4 w-4 p-0 hover:bg-transparent cursor-pointer"
-											onClick={() =>
-												copyToClipboard(
-													message.content,
-													message.id
-												)
-											}
-										>
-											{copiedId === message.id ? (
-												<FiCheck className="h-2 w-2" />
-											) : (
-												<FiCopy className="h-2 w-2" />
-											)}
-										</Button>
-									</div>
-								)}
+							{!isUserMessage && !chatState.isStreamingResponse && (
+								<div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+									<span>{getModelName(message.model)}</span>
+									<Button
+										variant="ghost"
+										size="sm"
+										className="h-4 w-4 p-0 hover:bg-transparent cursor-pointer"
+										onClick={() => copyToClipboard(message.content, message.id)}
+									>
+										{copiedId === message.id ? (
+											<FiCheck className="h-2 w-2" />
+										) : (
+											<FiCopy className="h-2 w-2" />
+										)}
+									</Button>
+								</div>
+							)}
 						</div>
 					</div>
 				);

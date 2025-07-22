@@ -204,9 +204,7 @@ export default function AppearancePage() {
 			<div className="space-y-6">
 				<div>
 					<h2 className="text-xl font-semibold">Theme</h2>
-					<p className="text-sm text-muted-foreground">
-						Select your UI theme
-					</p>
+					<p className="text-sm text-muted-foreground">Select your UI theme</p>
 				</div>
 
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -222,9 +220,7 @@ export default function AppearancePage() {
 								onClick={() => setTheme(themeOption.value)}
 							>
 								<CardContent className="p-4">
-									<ThemePreview
-										themeType={themeOption.value}
-									/>
+									<ThemePreview themeType={themeOption.value} />
 								</CardContent>
 							</Card>
 
@@ -233,9 +229,7 @@ export default function AppearancePage() {
 									<IoCheckmarkCircle className="w-5 h-5 text-primary" />
 								)}
 								{themeOption.icon}
-								<span className="font-medium">
-									{themeOption.label}
-								</span>
+								<span className="font-medium">{themeOption.label}</span>
 							</div>
 						</div>
 					))}
@@ -258,9 +252,7 @@ export default function AppearancePage() {
 						{accentColors.map((colorOption) => (
 							<button
 								key={colorOption.value}
-								onClick={() =>
-									setAccentColor(colorOption.value)
-								}
+								onClick={() => setAccentColor(colorOption.value)}
 								className={cn(
 									"relative w-12 h-12 rounded-full transition-all duration-200",
 									accentColor === colorOption.value

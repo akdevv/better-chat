@@ -15,7 +15,7 @@ function estimateTokens(content: string): number {
 
 export async function getProfileStats(
 	userId: string,
-	forceRefresh = false
+	forceRefresh = false,
 ): Promise<ProfileStats> {
 	const cacheKey = `profile_stats_${userId}`;
 
@@ -57,9 +57,7 @@ export async function getProfileStats(
 	const estimatedTokens =
 		totalMessages <= 1000
 			? sampledTokens
-			: Math.round(
-					(sampledTokens / recentMessages.length) * totalMessages
-			  );
+			: Math.round((sampledTokens / recentMessages.length) * totalMessages);
 
 	const stats: ProfileStats = {
 		totalChats: chatStats,
@@ -74,5 +72,3 @@ export async function getProfileStats(
 
 	return stats;
 }
-
-

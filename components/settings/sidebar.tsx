@@ -19,8 +19,7 @@ export default function Sidebar() {
 		<div className="sticky top-0 h-full flex-col p-6 transition-all duration-300 w-64 hidden md:flex">
 			{settingsNavigation.map((item) => {
 				const isActive =
-					pathname === item.href ||
-					pathname.startsWith(item.href + "/");
+					pathname === item.href || pathname.startsWith(item.href + "/");
 
 				return (
 					<div key={item.title} className="mb-1">

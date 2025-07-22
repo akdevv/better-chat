@@ -10,15 +10,12 @@ import { NextRequest, NextResponse } from "next/server";
 // GET /api/keys/[provider] - Get API key status for a specific provider
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { provider: string } }
+	{ params }: { params: Promise<{ provider: string }> },
 ) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const { provider } = await params;
@@ -26,10 +23,7 @@ export async function GET(
 		// Validate provider
 		const validProviders = ["openai", "google", "anthropic"];
 		if (!validProviders.includes(provider.toLowerCase())) {
-			return NextResponse.json(
-				{ error: "Invalid provider" },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
 		}
 
 		const hasValidKey = await checkHasValidApiKey(userId, provider);
@@ -37,7 +31,7 @@ export async function GET(
 		// Get API keys details (without actual key)
 		const apiKeys: ApiKeyData[] = await getApiKeys(userId);
 		const providerKey: ApiKeyData | undefined = apiKeys.find(
-			(key) => key.provider === provider
+			(key) => key.provider === provider,
 		);
 
 		return NextResponse.json({
@@ -51,14 +45,14 @@ export async function GET(
 						lastValidated: providerKey.lastValidated,
 						createdAt: providerKey.createdAt,
 						updatedAt: providerKey.updatedAt,
-				  }
+					}
 				: null,
 		});
 	} catch (error) {
 		console.error("Error fetching API key status:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }
@@ -66,15 +60,12 @@ export async function GET(
 // DELETE /api/keys/[provider] - Delete API key for a specific provider
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { provider: string } }
+	{ params }: { params: Promise<{ provider: string }> },
 ) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const { provider } = await params;
@@ -82,18 +73,12 @@ export async function DELETE(
 		// Validate provider
 		const validProviders = ["openai", "google", "anthropic"];
 		if (!validProviders.includes(provider.toLowerCase())) {
-			return NextResponse.json(
-				{ error: "Invalid provider" },
-				{ status: 400 }
-			);
+			return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
 		}
 
 		const deletedKey = await deleteApiKey(userId, provider);
 		if (!deletedKey) {
-			return NextResponse.json(
-				{ error: "API key not found" },
-				{ status: 404 }
-			);
+			return NextResponse.json({ error: "API key not found" }, { status: 404 });
 		}
 
 		return NextResponse.json({
@@ -105,7 +90,7 @@ export async function DELETE(
 		console.error("Error deleting API key:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

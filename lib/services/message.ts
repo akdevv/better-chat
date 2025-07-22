@@ -51,7 +51,7 @@ export const sendMessage = async (
 	fileIds: string[] = [],
 	temperature: number,
 	maxTokens: number,
-	signal?: AbortSignal
+	signal?: AbortSignal,
 ) => {
 	try {
 		if (signal?.aborted) {
@@ -103,7 +103,7 @@ export const sendMessage = async (
 			message,
 			model,
 			userId,
-			{ signal, fileIds, temperature, maxTokens }
+			{ signal, fileIds, temperature, maxTokens },
 		);
 		let completeResponse = "";
 
@@ -154,7 +154,7 @@ export const sendMessage = async (
 export const savePartialMessage = async (
 	chatId: string,
 	content: string,
-	model: string
+	model: string,
 ) => {
 	try {
 		let finalContent = content;

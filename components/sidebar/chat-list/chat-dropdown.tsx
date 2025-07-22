@@ -99,9 +99,7 @@ export function ChatDropdown({
 						variant="ghost"
 						size="sm"
 						className={`h-6 w-6 p-0 cursor-pointer transition-opacity focus:outline-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 ${
-							isOpen
-								? "opacity-100"
-								: "opacity-0 group-hover:opacity-100"
+							isOpen ? "opacity-100" : "opacity-0 group-hover:opacity-100"
 						}`}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -133,20 +131,13 @@ export function ChatDropdown({
 					</DropdownMenuItem>
 
 					{/* Star */}
-					<DropdownMenuItem
-						onClick={handleToggleStar}
-						disabled={isStarring}
-					>
+					<DropdownMenuItem onClick={handleToggleStar} disabled={isStarring}>
 						{chat.isStarred ? (
 							<FaStar className="h-3 w-3 mr-2" />
 						) : (
 							<FaRegStar className="h-3 w-3 mr-2" />
 						)}
-						{isStarring
-							? "..."
-							: chat.isStarred
-								? "Unstar"
-								: "Star"}
+						{isStarring ? "..." : chat.isStarred ? "Unstar" : "Star"}
 					</DropdownMenuItem>
 
 					{/* Delete */}

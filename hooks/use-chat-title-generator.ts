@@ -15,7 +15,6 @@ export function useChatTitleGenerator(): UseChatTitleGeneratorReturn {
 	const generateTitle = useCallback(
 		async (chatId: string, userMessage: string) => {
 			if (!chatId || !userMessage?.trim()) {
-				console.log("❌ Invalid inputs for title generation");
 				return;
 			}
 
@@ -23,9 +22,6 @@ export function useChatTitleGenerator(): UseChatTitleGeneratorReturn {
 			setError(null);
 
 			try {
-				console.log("🎯 Generating title for chat:", chatId);
-				console.log("📝 User message:", userMessage);
-
 				const res = await fetch(`/api/chats/${chatId}/generate-title`, {
 					method: "POST",
 					headers: {
@@ -42,14 +38,8 @@ export function useChatTitleGenerator(): UseChatTitleGeneratorReturn {
 				}
 
 				const result = await res.json();
-				console.log("✅ Title generation res:", result);
 
 				if (result.success && result.title) {
-					console.log(
-						"📡 Emitting title update event:",
-						result.title
-					);
-
 					// Dispatch custom event for sidebar to listen
 					window.dispatchEvent(
 						new CustomEvent("chatTitleUpdated", {
@@ -57,17 +47,9 @@ export function useChatTitleGenerator(): UseChatTitleGeneratorReturn {
 								chatId,
 								title: result.title,
 							},
-						})
-					);
-
-					console.log(
-						"✅ Title update event dispatched successfully"
+						}),
 					);
 				} else {
-					console.log(
-						"⚠️ Title generation was not successful:",
-						result.error
-					);
 					setError(result.error || "Failed to generate title");
 				}
 			} catch (err) {
@@ -79,7 +61,7 @@ export function useChatTitleGenerator(): UseChatTitleGeneratorReturn {
 				setIsGenerating(false);
 			}
 		},
-		[]
+		[],
 	);
 
 	return {

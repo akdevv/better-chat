@@ -108,37 +108,29 @@ export function MarkdownRenderer({
 	const preprocessContent = (text: string): string => {
 		// Handle markdown links that might not be getting parsed
 		// Pattern: [text](url) - ensure proper spacing and formatting
-		return text.replace(
-			/\[([^\]]+)\]\(([^)]+)\)/g,
-			(match, linkText, url) => {
-				// Clean up the URL (remove extra spaces, ensure proper protocol)
-				const cleanUrl = url.trim();
-				const cleanText = linkText.trim();
+		return text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, linkText, url) => {
+			// Clean up the URL (remove extra spaces, ensure proper protocol)
+			const cleanUrl = url.trim();
+			const cleanText = linkText.trim();
 
-				// If URL doesn't start with http/https, add https://
-				const finalUrl = cleanUrl.match(/^https?:\/\//)
-					? cleanUrl
-					: `https://${cleanUrl}`;
+			// If URL doesn't start with http/https, add https://
+			const finalUrl = cleanUrl.match(/^https?:\/\//)
+				? cleanUrl
+				: `https://${cleanUrl}`;
 
-				return `[${cleanText}](${finalUrl})`;
-			},
-		);
+			return `[${cleanText}](${finalUrl})`;
+		});
 	};
 
 	const processedContent = preprocessContent(content);
 
 	return (
-		<div
-			className={`prose prose-sm dark:prose-invert max-w-none ${className}`}
-		>
+		<div className={`prose prose-sm dark:prose-invert max-w-none ${className}`}>
 			<ReactMarkdown
 				remarkPlugins={[remarkGfm, remarkMath]}
 				rehypePlugins={[rehypeKatex, rehypeHighlight]}
 				components={{
-					pre: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"pre">) => {
+					pre: ({ children, ...props }: ComponentPropsWithoutRef<"pre">) => {
 						const codeChild = Array.isArray(children)
 							? children.find(
 									(child) =>
@@ -153,10 +145,7 @@ export function MarkdownRenderer({
 							"props" in codeChild
 						) {
 							return (
-								<CodeBlock
-									className={codeChild.props.className}
-									{...props}
-								>
+								<CodeBlock className={codeChild.props.className} {...props}>
 									{children}
 								</CodeBlock>
 							);
@@ -184,10 +173,7 @@ export function MarkdownRenderer({
 							);
 						}
 						return (
-							<code
-								{...props}
-								className="text-foreground text-xs font-mono"
-							>
+							<code {...props} className="text-foreground text-xs font-mono">
 								{children}
 							</code>
 						);
@@ -198,19 +184,13 @@ export function MarkdownRenderer({
 						...props
 					}: ComponentPropsWithoutRef<"table">) => (
 						<div className="overflow-x-auto my-3 rounded-lg border border-border/30">
-							<table
-								{...props}
-								className="min-w-full border-collapse text-sm"
-							>
+							<table {...props} className="min-w-full border-collapse text-sm">
 								{stripWhitespace(children)}
 							</table>
 						</div>
 					),
 
-					th: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"th">) => (
+					th: ({ children, ...props }: ComponentPropsWithoutRef<"th">) => (
 						<th
 							{...props}
 							className="border-b border-border/30 bg-muted/30 px-3 py-2 text-left font-medium text-foreground text-xs"
@@ -219,10 +199,7 @@ export function MarkdownRenderer({
 						</th>
 					),
 
-					td: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"td">) => (
+					td: ({ children, ...props }: ComponentPropsWithoutRef<"td">) => (
 						<td
 							{...props}
 							className="border-b border-border/20 px-3 py-2 text-muted-foreground text-xs"
@@ -243,46 +220,25 @@ export function MarkdownRenderer({
 						</blockquote>
 					),
 
-					h1: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"h1">) => (
-						<h1
-							{...props}
-							className="text-lg font-bold text-foreground"
-						>
+					h1: ({ children, ...props }: ComponentPropsWithoutRef<"h1">) => (
+						<h1 {...props} className="text-lg font-bold text-foreground">
 							{stripWhitespace(children)}
 						</h1>
 					),
 
-					h2: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"h2">) => (
-						<h2
-							{...props}
-							className="text-base font-bold text-foreground"
-						>
+					h2: ({ children, ...props }: ComponentPropsWithoutRef<"h2">) => (
+						<h2 {...props} className="text-base font-bold text-foreground">
 							{stripWhitespace(children)}
 						</h2>
 					),
 
-					h3: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"h3">) => (
-						<h3
-							{...props}
-							className="text-sm font-semibold text-foreground"
-						>
+					h3: ({ children, ...props }: ComponentPropsWithoutRef<"h3">) => (
+						<h3 {...props} className="text-sm font-semibold text-foreground">
 							{stripWhitespace(children)}
 						</h3>
 					),
 
-					ul: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"ul">) => (
+					ul: ({ children, ...props }: ComponentPropsWithoutRef<"ul">) => (
 						<ul
 							{...props}
 							className="list-disc list-outside ml-6 pl-2 space-y-1 text-foreground my-2"
@@ -291,10 +247,7 @@ export function MarkdownRenderer({
 						</ul>
 					),
 
-					ol: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"ol">) => (
+					ol: ({ children, ...props }: ComponentPropsWithoutRef<"ol">) => (
 						<ol
 							{...props}
 							className="list-decimal list-outside ml-6 pl-2 space-y-1 text-foreground my-2"
@@ -303,22 +256,13 @@ export function MarkdownRenderer({
 						</ol>
 					),
 
-					li: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"li">) => (
-						<li
-							{...props}
-							className="text-foreground leading-relaxed"
-						>
+					li: ({ children, ...props }: ComponentPropsWithoutRef<"li">) => (
+						<li {...props} className="text-foreground leading-relaxed">
 							{stripWhitespace(children)}
 						</li>
 					),
 
-					p: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"p">) => {
+					p: ({ children, ...props }: ComponentPropsWithoutRef<"p">) => {
 						// Process paragraph content to handle potential inline links
 						const processTextNodes = (
 							node: React.ReactNode,
@@ -327,19 +271,13 @@ export function MarkdownRenderer({
 								// Check if this text contains markdown-style links that weren't parsed
 								if (node.includes("[") && node.includes("](")) {
 									// Split the text and create proper link elements
-									const parts = node.split(
-										/(\[[^\]]+\]\([^)]+\))/g,
-									);
+									const parts = node.split(/(\[[^\]]+\]\([^)]+\))/g);
 									return parts.map((part, index) => {
-										const linkMatch = part.match(
-											/\[([^\]]+)\]\(([^)]+)\)/,
-										);
+										const linkMatch = part.match(/\[([^\]]+)\]\(([^)]+)\)/);
 										if (linkMatch) {
 											const [, linkText, url] = linkMatch;
 											const cleanUrl = url.trim();
-											const finalUrl = cleanUrl.match(
-												/^https?:\/\//,
-											)
+											const finalUrl = cleanUrl.match(/^https?:\/\//)
 												? cleanUrl
 												: `https://${cleanUrl}`;
 											return (
@@ -366,10 +304,7 @@ export function MarkdownRenderer({
 						};
 
 						return (
-							<p
-								{...props}
-								className="text-foreground leading-relaxed"
-							>
+							<p {...props} className="text-foreground leading-relaxed">
 								{processTextNodes(stripWhitespace(children))}
 							</p>
 						);
@@ -379,28 +314,18 @@ export function MarkdownRenderer({
 						children,
 						...props
 					}: ComponentPropsWithoutRef<"strong">) => (
-						<strong
-							{...props}
-							className="font-semibold text-foreground"
-						>
+						<strong {...props} className="font-semibold text-foreground">
 							{stripWhitespace(children)}
 						</strong>
 					),
 
-					em: ({
-						children,
-						...props
-					}: ComponentPropsWithoutRef<"em">) => (
+					em: ({ children, ...props }: ComponentPropsWithoutRef<"em">) => (
 						<em {...props} className="italic text-foreground/90">
 							{stripWhitespace(children)}
 						</em>
 					),
 
-					a: ({
-						children,
-						href,
-						...props
-					}: ComponentPropsWithoutRef<"a">) => {
+					a: ({ children, href, ...props }: ComponentPropsWithoutRef<"a">) => {
 						// Ensure href is properly formatted
 						const cleanHref = href?.trim() || "";
 						const finalHref = cleanHref.match(/^https?:\/\//)

@@ -3,7 +3,7 @@ import { getModelById } from "@/lib/ai/models";
 import { AIError, AIStreamOptions } from "@/lib/types/ai";
 
 export const createGroqStream = async (
-	options: AIStreamOptions
+	options: AIStreamOptions,
 ): Promise<ReadableStream<Uint8Array>> => {
 	const {
 		messages,
@@ -31,10 +31,7 @@ export const createGroqStream = async (
 
 				const chatCompletion = await groq.chat.completions.create({
 					messages: messages.map((msg) => ({
-						role: msg.role.toLowerCase() as
-							| "user"
-							| "assistant"
-							| "system",
+						role: msg.role.toLowerCase() as "user" | "assistant" | "system",
 						content: msg.content,
 					})),
 					model: modelInfo.id,
@@ -71,7 +68,7 @@ export const createGroqStream = async (
 				} else {
 					console.error("Groq streaming error:", err);
 					const aiError: AIError = new Error(
-						`Groq API error: ${err.message ?? "Unknown error"}`
+						`Groq API error: ${err.message ?? "Unknown error"}`,
 					) as AIError;
 					aiError.provider = "groq";
 					aiError.code = err.code ?? "unknown";

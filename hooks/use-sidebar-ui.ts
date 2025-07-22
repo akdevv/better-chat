@@ -47,10 +47,7 @@ export function useSidebarUI() {
 		} else {
 			setIsCollapsed((prev) => {
 				const newIsCollapsed = !prev;
-				localStorage.setItem(
-					STORAGE_KEY,
-					JSON.stringify(newIsCollapsed),
-				);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(newIsCollapsed));
 				return newIsCollapsed;
 			});
 		}

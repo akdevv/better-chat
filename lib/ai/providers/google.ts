@@ -3,7 +3,7 @@ import { getModelById } from "@/lib/ai/models";
 import { AIError, AIStreamOptions } from "@/lib/types/ai";
 
 export const createGoogleStream = async (
-	options: AIStreamOptions
+	options: AIStreamOptions,
 ): Promise<ReadableStream<Uint8Array>> => {
 	const {
 		messages,
@@ -27,8 +27,8 @@ export const createGoogleStream = async (
 			message.role === "USER"
 				? "user"
 				: message.role === "ASSISTANT"
-				? "model"
-				: "user",
+					? "model"
+					: "user",
 		parts: [{ text: message.content }],
 	}));
 
@@ -76,7 +76,7 @@ export const createGoogleStream = async (
 				} else {
 					console.error("Google streaming error:", err);
 					const aiError: AIError = new Error(
-						`Google API error: ${err.message ?? "Unknown error"}`
+						`Google API error: ${err.message ?? "Unknown error"}`,
 					) as AIError;
 					aiError.provider = "google";
 					aiError.code = err.code ?? "unknown";

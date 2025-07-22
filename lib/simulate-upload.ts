@@ -16,51 +16,57 @@ export interface UploadProgress {
  */
 export async function simulateFileUpload(
 	file: File,
-	onProgress?: (progress: UploadProgress) => void
+	onProgress?: (progress: UploadProgress) => void,
 ): Promise<UploadResult> {
 	return new Promise((resolve) => {
 		let progress = 0;
 
 		// Simulate upload progress
-		const uploadInterval = setInterval(() => {
-			progress += Math.random() * 15 + 5; // Random progress between 5-20%
+		const uploadInterval = setInterval(
+			() => {
+				progress += Math.random() * 15 + 5; // Random progress between 5-20%
 
-			if (progress >= 100) {
-				progress = 100;
-				clearInterval(uploadInterval);
+				if (progress >= 100) {
+					progress = 100;
+					clearInterval(uploadInterval);
 
-				onProgress?.({
-					progress: 100,
-					stage: "complete",
-				});
-
-				// Simulate successful upload with mock data
-				setTimeout(() => {
-					resolve({
-						success: true,
-						fileKey: `mock_${Date.now()}_${file.name}`,
-						fileUrl: `https://mock-uploadthing.com/files/${Date.now()}_${
-							file.name
-						}`,
+					onProgress?.({
+						progress: 100,
+						stage: "complete",
 					});
-				}, 500);
-			} else {
-				onProgress?.({
-					progress: Math.min(progress, 95),
-					stage: progress < 90 ? "uploading" : "processing",
-				});
-			}
-		}, 100 + Math.random() * 100); // Random interval between 100-200ms
+
+					// Simulate successful upload with mock data
+					setTimeout(() => {
+						resolve({
+							success: true,
+							fileKey: `mock_${Date.now()}_${file.name}`,
+							fileUrl: `https://mock-uploadthing.com/files/${Date.now()}_${
+								file.name
+							}`,
+						});
+					}, 500);
+				} else {
+					onProgress?.({
+						progress: Math.min(progress, 95),
+						stage: progress < 90 ? "uploading" : "processing",
+					});
+				}
+			},
+			100 + Math.random() * 100,
+		); // Random interval between 100-200ms
 
 		// Simulate potential upload failure (10% chance)
 		if (Math.random() < 0.1) {
-			setTimeout(() => {
-				clearInterval(uploadInterval);
-				resolve({
-					success: false,
-					error: "Upload failed: Network error",
-				});
-			}, 1000 + Math.random() * 2000);
+			setTimeout(
+				() => {
+					clearInterval(uploadInterval);
+					resolve({
+						success: false,
+						error: "Upload failed: Network error",
+					});
+				},
+				1000 + Math.random() * 2000,
+			);
 		}
 	});
 }
@@ -71,7 +77,7 @@ export async function simulateFileUpload(
 export async function simulateMultipleFileUpload(
 	files: File[],
 	onFileProgress?: (fileIndex: number, progress: UploadProgress) => void,
-	onFileComplete?: (fileIndex: number, result: UploadResult) => void
+	onFileComplete?: (fileIndex: number, result: UploadResult) => void,
 ): Promise<UploadResult[]> {
 	const results: UploadResult[] = [];
 

@@ -19,11 +19,10 @@ export const useFileUpload = () => {
 		(newFile: File, existingFiles: FilePreviewItem[]) => {
 			return existingFiles.some(
 				(existing) =>
-					existing.name === newFile.name &&
-					existing.size === newFile.size
+					existing.name === newFile.name && existing.size === newFile.size,
 			);
 		},
-		[]
+		[],
 	);
 
 	// Calculate total size of all attached files
@@ -53,9 +52,7 @@ export const useFileUpload = () => {
 
 				// Check for duplicates
 				if (isFileAlreadyAttached(file, attachedFiles)) {
-					errors.push(
-						`${file.name}: File already attached to this message`
-					);
+					errors.push(`${file.name}: File already attached to this message`);
 					return;
 				}
 
@@ -66,33 +63,28 @@ export const useFileUpload = () => {
 			const totalFilesAfterAdd = attachedFiles.length + validFiles.length;
 			if (totalFilesAfterAdd > FILE_LIMITS.MAX_FILE_COUNT) {
 				errors.push(
-					`Too many files. Maximum ${FILE_LIMITS.MAX_FILE_COUNT} files per message`
+					`Too many files. Maximum ${FILE_LIMITS.MAX_FILE_COUNT} files per message`,
 				);
 				return;
 			}
 
 			// Check total size limit (64MB max)
 			const currentTotalSize = getTotalSize(attachedFiles);
-			const newFilesSize = validFiles.reduce(
-				(sum, file) => sum + file.size,
-				0
-			);
+			const newFilesSize = validFiles.reduce((sum, file) => sum + file.size, 0);
 			const totalSizeAfterAdd = currentTotalSize + newFilesSize;
 
 			if (totalSizeAfterAdd > FILE_LIMITS.MAX_TOTAL_SIZE) {
-				const remainingSize =
-					FILE_LIMITS.MAX_TOTAL_SIZE - currentTotalSize;
+				const remainingSize = FILE_LIMITS.MAX_TOTAL_SIZE - currentTotalSize;
 				errors.push(
 					`Total size limit exceeded. You can add ${formatFileSize(
-						remainingSize
-					)} more (max 64MB per message)`
+						remainingSize,
+					)} more (max 64MB per message)`,
 				);
 				return;
 			}
 
 			// Show errors if any
 			if (errors.length > 0) {
-				console.error("File validation errors:", errors);
 				errors.forEach((error) => toast.error(error));
 				return;
 			}
@@ -102,9 +94,7 @@ export const useFileUpload = () => {
 				const fileTypeInfo = getFileTypeInfo(file.name, file.type);
 
 				return {
-					id: `${Date.now()}_${Math.random()
-						.toString(36)
-						.substr(2, 9)}`,
+					id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 					file,
 					status: "pending",
 					name: file.name,
@@ -122,12 +112,12 @@ export const useFileUpload = () => {
 				toast.success(
 					`${newFiles.length} file${
 						newFiles.length > 1 ? "s" : ""
-					} added. Uploading...`
+					} added. Uploading...`,
 				);
 				await uploadFiles(newFiles);
 			}
 		},
-		[attachedFiles, isFileAlreadyAttached, getTotalSize]
+		[attachedFiles, isFileAlreadyAttached, getTotalSize],
 	);
 
 	const uploadFiles = useCallback(async (files: FilePreviewItem[]) => {
@@ -138,8 +128,8 @@ export const useFileUpload = () => {
 			const fileIds = files.map((f) => f.id);
 			setAttachedFiles((prev) =>
 				prev.map((f) =>
-					fileIds.includes(f.id) ? { ...f, status: "uploading" } : f
-				)
+					fileIds.includes(f.id) ? { ...f, status: "uploading" } : f,
+				),
 			);
 
 			// Upload files in parallel
@@ -174,10 +164,7 @@ export const useFileUpload = () => {
 					return {
 						fileId: fileItem.id,
 						success: false,
-						error:
-							error instanceof Error
-								? error.message
-								: "Upload failed",
+						error: error instanceof Error ? error.message : "Upload failed",
 					};
 				}
 			});
@@ -191,24 +178,18 @@ export const useFileUpload = () => {
 						f.id === result.fileId
 							? {
 									...f,
-									status: result.success
-										? "uploaded"
-										: "error",
+									status: result.success ? "uploaded" : "error",
 									uploadData: result.success
 										? {
 												id: result.uploadedFileId,
-												key: result.data
-													?.uploadThingKey,
-												url: result.data
-													?.uploadThingUrl,
-										  }
+												key: result.data?.uploadThingKey,
+												url: result.data?.uploadThingUrl,
+											}
 										: undefined,
-									error: result.success
-										? undefined
-										: result.error,
-							  }
-							: f
-					)
+									error: result.success ? undefined : result.error,
+								}
+							: f,
+					),
 				);
 			});
 
@@ -220,14 +201,14 @@ export const useFileUpload = () => {
 				toast.success(
 					`${successful.length} file${
 						successful.length > 1 ? "s" : ""
-					} uploaded successfully`
+					} uploaded successfully`,
 				);
 			}
 			if (failed.length > 0) {
 				toast.error(
 					`${failed.length} file${
 						failed.length > 1 ? "s" : ""
-					} failed to upload`
+					} failed to upload`,
 				);
 			}
 		} catch (error) {
@@ -241,13 +222,10 @@ export const useFileUpload = () => {
 						? {
 								...f,
 								status: "error",
-								error:
-									error instanceof Error
-										? error.message
-										: "Upload failed",
-						  }
-						: f
-				)
+								error: error instanceof Error ? error.message : "Upload failed",
+							}
+						: f,
+				),
 			);
 
 			toast.error("Failed to upload files");
@@ -259,7 +237,7 @@ export const useFileUpload = () => {
 	const linkFilesToMessage = useCallback(
 		async (chatId: string, messageId: string): Promise<boolean> => {
 			const uploadedFiles = attachedFiles.filter(
-				(f) => f.status === "uploaded" && f.uploadData?.id
+				(f) => f.status === "uploaded" && f.uploadData?.id,
 			);
 
 			if (uploadedFiles.length === 0) {
@@ -267,9 +245,7 @@ export const useFileUpload = () => {
 			}
 
 			try {
-				const uploadedFileIds = uploadedFiles.map(
-					(f) => f.uploadData!.id
-				);
+				const uploadedFileIds = uploadedFiles.map((f) => f.uploadData!.id);
 
 				// Link files to message via API
 				const linkResponse = await fetch(
@@ -282,20 +258,18 @@ export const useFileUpload = () => {
 						body: JSON.stringify({
 							uploadedFileIds,
 						}),
-					}
+					},
 				);
 
 				if (!linkResponse.ok) {
 					const errorData = await linkResponse.json();
-					throw new Error(
-						errorData.error || "Failed to link files to message"
-					);
+					throw new Error(errorData.error || "Failed to link files to message");
 				}
 
 				toast.success(
 					`${uploadedFiles.length} file${
 						uploadedFiles.length > 1 ? "s" : ""
-					} attached to message`
+					} attached to message`,
 				);
 				return true;
 			} catch (error) {
@@ -304,7 +278,7 @@ export const useFileUpload = () => {
 				return false;
 			}
 		},
-		[attachedFiles]
+		[attachedFiles],
 	);
 
 	// Remove file from preview
@@ -312,9 +286,6 @@ export const useFileUpload = () => {
 		setAttachedFiles((prev) => {
 			const updated = prev.filter((f) => f.id !== fileId);
 			const removedFile = prev.find((f) => f.id === fileId);
-			if (removedFile) {
-				console.log(`Removed file: ${removedFile.name}`);
-			}
 			return updated;
 		});
 	}, []);
@@ -329,14 +300,12 @@ export const useFileUpload = () => {
 		const total = attachedFiles.length;
 		const totalSize = getTotalSize(attachedFiles);
 		const uploaded = attachedFiles.filter(
-			(f) => f.status === "uploaded"
+			(f) => f.status === "uploaded",
 		).length;
 		const uploading = attachedFiles.filter(
-			(f) => f.status === "uploading"
+			(f) => f.status === "uploading",
 		).length;
-		const pending = attachedFiles.filter(
-			(f) => f.status === "pending"
-		).length;
+		const pending = attachedFiles.filter((f) => f.status === "pending").length;
 		const errors = attachedFiles.filter((f) => f.status === "error").length;
 
 		return {
@@ -357,26 +326,12 @@ export const useFileUpload = () => {
 
 		// All files should be pending (ready to upload) or uploaded
 		return attachedFiles.every(
-			(f) => f.status === "pending" || f.status === "uploaded"
+			(f) => f.status === "pending" || f.status === "uploaded",
 		);
 	}, [attachedFiles]);
 
 	// Log attached files
-	const logAttachedFiles = useCallback(() => {
-		if (attachedFiles.length > 0) {
-			attachedFiles.forEach((fileItem, index) => {
-				console.log(`File ${index + 1}:`, {
-					id: fileItem.id,
-					name: fileItem.name,
-					size: fileItem.size,
-					type: fileItem.type,
-					status: fileItem.status,
-					uploadData: fileItem.uploadData,
-					error: fileItem.error,
-				});
-			});
-		}
-	}, [attachedFiles]);
+	const logAttachedFiles = useCallback(() => {}, [attachedFiles]);
 
 	// Get successfully uploaded file IDs for message creation
 	const getUploadedFileIds = useCallback(() => {

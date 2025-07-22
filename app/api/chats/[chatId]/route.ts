@@ -17,7 +17,7 @@ const patchSchema = z.discriminatedUnion("action", [
 // PATCH /api/chats/[chatId] - Update a chat (rename or star)
 export async function PATCH(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } },
+	{ params }: { params: Promise<{ chatId: string }> },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();
@@ -66,7 +66,7 @@ export async function PATCH(
 // DELETE /api/chats/[chatId] - Delete a chat
 export async function DELETE(
 	req: NextRequest,
-	{ params }: { params: { chatId: string } },
+	{ params }: { params: Promise<{ chatId: string }> },
 ) {
 	try {
 		const { error, userId } = await authenticateUser();

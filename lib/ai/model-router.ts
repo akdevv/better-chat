@@ -20,7 +20,7 @@ interface UserApiKey {
 
 // Get user's API keys from db
 const getUserApiKeys = async (
-	userId: string
+	userId: string,
 ): Promise<Record<string, UserApiKey>> => {
 	try {
 		const apiKeys = await db.apiKey.findMany({ where: { userId } });
@@ -76,7 +76,7 @@ const verifyApiKey = async (modelId: string, userId: string) => {
 
 	if (!providerKey) {
 		const error = new Error(
-			`Please add your ${model.provider} API key.`
+			`Please add your ${model.provider} API key.`,
 		) as AIError;
 		error.provider = model.provider;
 		error.code = "NO_API_KEY";
@@ -87,7 +87,7 @@ const verifyApiKey = async (modelId: string, userId: string) => {
 		return decrypt(providerKey.encryptedKey, userId);
 	} catch {
 		const decryptError = new Error(
-			`Failed to decrypt ${model.provider} API key.`
+			`Failed to decrypt ${model.provider} API key.`,
 		) as AIError;
 		decryptError.provider = model.provider;
 		decryptError.code = "INVALID_API_KEY";
@@ -103,7 +103,7 @@ const countTokens = (message: string) => {
 const validateChatInput = (
 	model: AIModel,
 	currentMessage: string,
-	messages: AIMessage[] = []
+	messages: AIMessage[] = [],
 ) => {
 	if (currentMessage.length > model.maxMessageLength) {
 		const error = new Error("Your message is too long.") as AIError;
@@ -118,7 +118,7 @@ const validateChatInput = (
 		countTokens(currentMessage);
 	if (totalTokens > model.contextWindow) {
 		const error = new Error(
-			"This conversation has too much context. Please start a new chat to continue."
+			"This conversation has too much context. Please start a new chat to continue.",
 		) as AIError;
 		error.code = "CONTEXT_TOO_LONG";
 		error.provider = "validation";
@@ -148,7 +148,7 @@ const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
 				const content = await fetchFileContent(
 					file.uploadThingUrl,
 					file.mimeType,
-					file.size
+					file.size,
 				);
 
 				return {
@@ -159,7 +159,7 @@ const getFilesData = async (fileIds: string[]): Promise<FileData[]> => {
 					url: file.uploadThingUrl,
 					content: content,
 				} as FileData;
-			})
+			}),
 		);
 
 		return filesWithContent;
@@ -174,7 +174,7 @@ const prepareMessages = async (
 	model: AIModel,
 	messages: AIMessage[],
 	currentMessage: string,
-	fileIds: string[] = []
+	fileIds: string[] = [],
 ): Promise<AIMessage[]> => {
 	const files = await getFilesData(fileIds);
 
@@ -199,15 +199,13 @@ const prepareMessages = async (
 
 	// Separate out system messages
 	const systemMessages = messages.filter((msg) => msg.role === "SYSTEM");
-	const conversationMessages = messages.filter(
-		(msg) => msg.role !== "SYSTEM"
-	);
+	const conversationMessages = messages.filter((msg) => msg.role !== "SYSTEM");
 
 	// Smart context management
 	let totalTokens = countTokens(currentMessage);
 	totalTokens += systemMessages.reduce(
 		(acc, msg) => acc + countTokens(msg.content),
-		0
+		0,
 	);
 
 	// Add file context tokens if present
@@ -237,9 +235,7 @@ const prepareMessages = async (
 		contextPrompt = `Previous conversation history for context:
 
 ${trimmedMessages
-	.map(
-		(msg) => `${msg.role === "USER" ? "User" : "Assistant"}: ${msg.content}`
-	)
+	.map((msg) => `${msg.role === "USER" ? "User" : "Assistant"}: ${msg.content}`)
 	.join("\n\n")}
 
 ---
@@ -251,9 +247,7 @@ ${trimmedMessages
 	if (files.length > 0) {
 		contextPrompt += `Attached files:\n`;
 		files.forEach((file, index) => {
-			contextPrompt += `\nFile ${index + 1}: ${file.name} (${
-				file.type
-			})\n`;
+			contextPrompt += `\nFile ${index + 1}: ${file.name} (${file.type})\n`;
 			if (file.content) {
 				if (
 					file.content.startsWith("[IMAGE:") ||
@@ -296,7 +290,7 @@ export const sendMessageToAI = async (
 	options: {
 		fileIds?: string[];
 		signal?: AbortSignal;
-	}
+	},
 ): Promise<ReadableStream<Uint8Array>> => {
 	const { fileIds = [], signal } = options;
 
@@ -326,7 +320,7 @@ export const sendMessageToAIWithHistory = async (
 		maxTokens?: number;
 		fileIds?: string[];
 		signal?: AbortSignal;
-	} = {}
+	} = {},
 ): Promise<ReadableStream<Uint8Array>> => {
 	const { temperature, maxTokens, fileIds = [], signal } = options;
 
@@ -339,7 +333,7 @@ export const sendMessageToAIWithHistory = async (
 		model,
 		messages,
 		currentMessage,
-		fileIds
+		fileIds,
 	);
 
 	const stream = getStreamFunction(model.provider);

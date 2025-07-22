@@ -36,7 +36,7 @@ export function useChat() {
 
 			return hasOnlyUserMessage && isUntitled;
 		},
-		[]
+		[],
 	);
 
 	const generateAIResponse = useCallback(
@@ -44,7 +44,7 @@ export function useChat() {
 			chatId: string,
 			message: string,
 			model: string,
-			uploadedFileIds?: string[]
+			uploadedFileIds?: string[],
 		) => {
 			if (!chatId) return;
 			setChatState((prev) => ({ ...prev, isStreamingResponse: true }));
@@ -100,20 +100,19 @@ export function useChat() {
 						messages: prev.messages.map((msg) =>
 							msg.id === aiMessage.id
 								? { ...msg, content: accumulatedContent }
-								: msg
+								: msg,
 						),
 					}));
 				}
 
 				// Emit chat updated event for sidebar when AI response is complete
-				console.log("📡 Emitting chat updated event for AI response completion");
 				window.dispatchEvent(
 					new CustomEvent("chatUpdated", {
 						detail: {
 							chatId,
 							updatedAt: new Date().toISOString(),
 						},
-					})
+					}),
 				);
 			} catch (error) {
 				console.error("Streaming error:", error);
@@ -123,7 +122,7 @@ export function useChat() {
 					// Keep the partial response and save it to database
 					setChatState((prev) => {
 						const currentMessage = prev.messages.find(
-							(msg) => msg.id === aiMessage.id
+							(msg) => msg.id === aiMessage.id,
 						);
 						if (currentMessage && currentMessage.content.trim()) {
 							// Save partial response to database
@@ -145,9 +144,7 @@ export function useChat() {
 					// Remove failed AI message only if it's not an abort
 					setChatState((prev) => ({
 						...prev,
-						messages: prev.messages.filter(
-							(msg) => msg.id !== aiMessage.id
-						),
+						messages: prev.messages.filter((msg) => msg.id !== aiMessage.id),
 					}));
 				}
 			} finally {
@@ -158,7 +155,7 @@ export function useChat() {
 				abortControllerRef.current = null;
 			}
 		},
-		[selectedModel]
+		[selectedModel],
 	);
 
 	// Initial fetch messages
@@ -187,8 +184,7 @@ export function useChat() {
 				!autoGenerateAIResponseRef.current
 			) {
 				autoGenerateAIResponseRef.current = true;
-				const fileIds =
-					data[0].files?.map((file: any) => file.id) || [];
+				const fileIds = data[0].files?.map((file: any) => file.id) || [];
 
 				// Check if title generation is needed
 				const needsTitle = shouldGenerateTitle(data);
@@ -197,22 +193,16 @@ export function useChat() {
 				const promises = [];
 
 				if (needsTitle) {
-					console.log(
-						"🎯 Starting title generation (first priority)"
-					);
-					promises.push(
-						generateTitle(chatId as string, data[0].content)
-					);
+					promises.push(generateTitle(chatId as string, data[0].content));
 				}
 
-				console.log("🤖 Starting AI response generation");
 				promises.push(
 					generateAIResponse(
 						chatId as string,
 						data[0].content,
 						selectedModel,
-						fileIds
-					)
+						fileIds,
+					),
 				);
 
 				await Promise.allSettled(promises);
@@ -237,7 +227,7 @@ export function useChat() {
 		async (
 			e: React.FormEvent,
 			uploadedFileIds?: string[],
-			onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+			onFilesLinked?: (chatId: string, messageId: string) => Promise<void>,
 		) => {
 			e.preventDefault();
 			if (!input.trim() || isCreatingChat) return;
@@ -262,7 +252,6 @@ export function useChat() {
 				const data = await res.json();
 
 				// Emit chat created event for sidebar
-				console.log("📡 Emitting chat created event");
 				window.dispatchEvent(
 					new CustomEvent("chatCreated", {
 						detail: {
@@ -274,26 +263,17 @@ export function useChat() {
 								updatedAt: new Date(),
 							},
 						},
-					})
+					}),
 				);
 
 				// If there are uploaded files, link them to the message
-				if (
-					uploadedFileIds &&
-					uploadedFileIds.length > 0 &&
-					onFilesLinked
-				) {
-					console.log("→ Linking files to new chat message...");
+				if (uploadedFileIds && uploadedFileIds.length > 0 && onFilesLinked) {
 					try {
-						console.log("useChat handleCreateChat onFilesLinked");
-						console.log("data", data);
 						await onFilesLinked(data.chatId, data.messageId);
 					} catch (error) {
 						console.error("Failed to link files:", error);
 						// Don't block chat creation for file linking failure
-						toast.warning(
-							"Chat created but files couldn't be attached"
-						);
+						toast.warning("Chat created but files couldn't be attached");
 					}
 				}
 
@@ -305,7 +285,7 @@ export function useChat() {
 				setIsCreatingChat(false);
 			}
 		},
-		[input, selectedModel, router]
+		[input, selectedModel, router],
 	);
 
 	// Send message with optional file upload callback
@@ -313,7 +293,7 @@ export function useChat() {
 		async (
 			e: React.FormEvent,
 			uploadedFileIds?: string[],
-			onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+			onFilesLinked?: (chatId: string, messageId: string) => Promise<void>,
 		) => {
 			e.preventDefault();
 
@@ -337,7 +317,6 @@ export function useChat() {
 
 			try {
 				// Step 1: Create the user message first
-				console.log("=== Creating user message ===");
 
 				const userMessageResponse = await fetch(
 					`/api/chats/${chatId}/messages`,
@@ -352,7 +331,7 @@ export function useChat() {
 							generateAIResponse: false, // Only create user message
 							fileIds: uploadedFileIds || [],
 						}),
-					}
+					},
 				);
 
 				if (!userMessageResponse.ok) {
@@ -360,7 +339,6 @@ export function useChat() {
 				}
 
 				const createdMessage = await userMessageResponse.json();
-				console.log("User message created:", createdMessage);
 
 				// Step 2: Add the message to UI immediately
 				const userMessage: Message = {
@@ -379,22 +357,17 @@ export function useChat() {
 				}));
 
 				// Emit chat updated event for sidebar (to update timestamp and reorder)
-				console.log("📡 Emitting chat updated event for message activity");
 				window.dispatchEvent(
 					new CustomEvent("chatUpdated", {
 						detail: {
 							chatId: chatId as string,
 							updatedAt: new Date().toISOString(),
 						},
-					})
+					}),
 				);
 
 				// Step 3: Handle first message logic with proper race condition handling
 				if (isFirstMessage) {
-					console.log(
-						"🎯 First message detected - starting parallel operations"
-					);
-
 					const allMessages = [...chatState.messages, userMessage];
 					const needsTitle = shouldGenerateTitle(allMessages);
 
@@ -402,26 +375,17 @@ export function useChat() {
 
 					// Start title generation first (if needed)
 					if (needsTitle) {
-						console.log(
-							"🎯 Starting title generation (first priority)"
-						);
-						promises.push(
-							generateTitle(
-								chatId as string,
-								currentUserMessage
-							)
-						);
+						promises.push(generateTitle(chatId as string, currentUserMessage));
 					}
 
 					// Start AI response generation
-					console.log("🤖 Starting AI response generation");
 					promises.push(
 						generateAIResponse(
 							chatId as string,
 							trimmedInput || "Files attached",
 							selectedModel,
-							uploadedFileIds
-						)
+							uploadedFileIds,
+						),
 					);
 
 					// Execute both in parallel
@@ -432,31 +396,21 @@ export function useChat() {
 						chatId as string,
 						trimmedInput || "Files attached",
 						selectedModel,
-						uploadedFileIds
+						uploadedFileIds,
 					);
 				}
 
 				// Step 4: Upload files if any (this happens in the background)
 				if (hasFiles && onFilesLinked) {
-					console.log("→ Starting file upload...");
 					try {
-						console.log("useChat handleSendMessage onFilesLinked");
-						console.log("chatId", chatId);
-						console.log("createdMessage.id", createdMessage.id);
-						await onFilesLinked(
-							chatId as string,
-							createdMessage.id
-						);
-						console.log("→ Files uploaded successfully");
+						await onFilesLinked(chatId as string, createdMessage.id);
 
 						// Refresh messages to get updated file info
 						await fetchMessages();
 					} catch (error) {
 						console.error("→ File upload failed:", error);
 						// Message is created but files failed - not critical
-						toast.error(
-							"Message sent but some files failed to upload"
-						);
+						toast.error("Message sent but some files failed to upload");
 					}
 				}
 
@@ -478,7 +432,7 @@ export function useChat() {
 			shouldGenerateTitle,
 			generateTitle,
 			generateAIResponse,
-		]
+		],
 	);
 
 	const onCancel = useCallback(() => {

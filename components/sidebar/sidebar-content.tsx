@@ -31,9 +31,7 @@ export function SidebarContent() {
 				<Link href="/chat">
 					<Button
 						className={`cursor-pointer ${
-							isCollapsed
-								? "h-8 w-8 rounded-full"
-								: "flex gap-2 w-full"
+							isCollapsed ? "h-8 w-8 rounded-full" : "flex gap-2 w-full"
 						}`}
 					>
 						<GoPlus className="h-4 w-4" />

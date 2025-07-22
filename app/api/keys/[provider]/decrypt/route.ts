@@ -10,15 +10,12 @@ import { decrypt } from "@/lib/encryption";
  */
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { provider: string } },
+	{ params }: { params: Promise<{ provider: string }> },
 ) {
 	try {
 		const { userId } = await authenticateUser();
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 },
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const { provider } = await params;
@@ -26,18 +23,12 @@ export async function GET(
 		// Validate provider
 		const validProviders = ["openai", "google", "anthropic"];
 		if (!validProviders.includes(provider)) {
-			return NextResponse.json(
-				{ error: "Invalid provider" },
-				{ status: 400 },
-			);
+			return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
 		}
 
 		const apiKey: ApiKeyState | null = await getApiKey(userId, provider);
 		if (!apiKey) {
-			return NextResponse.json(
-				{ error: "API key not found" },
-				{ status: 404 },
-			);
+			return NextResponse.json({ error: "API key not found" }, { status: 404 });
 		}
 
 		const decryptedKey = await decrypt(apiKey.key || "", userId);

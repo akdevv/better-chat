@@ -17,12 +17,12 @@ interface ChatContextValue {
 	handleCreateChat: (
 		e: React.FormEvent,
 		uploadedFileIds?: string[],
-		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>,
 	) => void;
 	handleSendMessage: (
 		e: React.FormEvent,
 		uploadedFileIds?: string[],
-		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>
+		onFilesLinked?: (chatId: string, messageId: string) => Promise<void>,
 	) => void;
 	onCancel: () => void;
 	onStop: () => void;
@@ -43,7 +43,5 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 	const chat = useChat();
 	const value: ChatContextValue = { ...chat };
 
-	return (
-		<ChatContext.Provider value={value}>{children}</ChatContext.Provider>
-	);
+	return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
 }

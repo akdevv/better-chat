@@ -240,24 +240,18 @@ export const FILE_LIMITS = {
 
 // Helper functions
 export function getAllowedExtensions(): string[] {
-	return Object.values(SUPPORTED_FILE_TYPES).flatMap(
-		(type) => type.extensions
-	);
+	return Object.values(SUPPORTED_FILE_TYPES).flatMap((type) => type.extensions);
 }
 
 export function getAllowedMimeTypes(): string[] {
-	return Object.values(SUPPORTED_FILE_TYPES).flatMap(
-		(type) => type.mimeTypes
-	);
+	return Object.values(SUPPORTED_FILE_TYPES).flatMap((type) => type.mimeTypes);
 }
 
 export function getFileTypeInfo(
 	fileName: string,
-	mimeType?: string
+	mimeType?: string,
 ): FileTypeInfo | null {
-	const extension = fileName
-		.toLowerCase()
-		.substring(fileName.lastIndexOf("."));
+	const extension = fileName.toLowerCase().substring(fileName.lastIndexOf("."));
 
 	// First try to match by extension
 	for (const typeInfo of Object.values(SUPPORTED_FILE_TYPES)) {
@@ -280,11 +274,9 @@ export function getFileTypeInfo(
 
 export function getFileCategory(
 	fileName: string,
-	mimeType?: string
+	mimeType?: string,
 ): "image" | "document" | "code" | "data" {
-	const extension = fileName
-		.toLowerCase()
-		.substring(fileName.lastIndexOf("."));
+	const extension = fileName.toLowerCase().substring(fileName.lastIndexOf("."));
 
 	for (const type of Object.values(SUPPORTED_FILE_TYPES)) {
 		if (type.extensions.includes(extension)) {

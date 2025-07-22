@@ -9,10 +9,7 @@ export async function GET() {
 		const { userId } = await authenticateUser();
 
 		if (!userId) {
-			return NextResponse.json(
-				{ error: "Unauthorized" },
-				{ status: 401 }
-			);
+			return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 		}
 
 		const apiKeys = await db.apiKey.findMany({
@@ -24,7 +21,7 @@ export async function GET() {
 			const isEnabled =
 				model.isFree ||
 				apiKeys.find(
-					(key) => key.provider === model.provider && key.isValidated
+					(key) => key.provider === model.provider && key.isValidated,
 				);
 
 			return {
@@ -41,7 +38,7 @@ export async function GET() {
 		console.error("Error fetching model status:", error);
 		return NextResponse.json(
 			{ error: "Internal server error" },
-			{ status: 500 }
+			{ status: 500 },
 		);
 	}
 }

@@ -13,7 +13,10 @@ const formatChat = (chat: Chat): SidebarChat => {
 	};
 };
 
-export const getUserChats = async (userId: string, params: { limit: number }) => {
+export const getUserChats = async (
+	userId: string,
+	params: { limit: number },
+) => {
 	try {
 		const { limit } = params;
 
@@ -26,9 +29,7 @@ export const getUserChats = async (userId: string, params: { limit: number }) =>
 			db.chat.count({ where: { userId } }),
 		]);
 
-		const formattedChats: SidebarChat[] = chats.map((chat) =>
-			formatChat(chat)
-		);
+		const formattedChats: SidebarChat[] = chats.map((chat) => formatChat(chat));
 
 		return { chats: formattedChats, total };
 	} catch (error) {

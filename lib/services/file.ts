@@ -32,7 +32,7 @@ export const getFileGroup = (file: File): string => {
 };
 
 export const validateFiles = (
-	files: File[]
+	files: File[],
 ): { valid: boolean; error?: string } => {
 	// Check file count
 	if (files.length > FILE_LIMITS.MAX_FILE_COUNT) {
@@ -112,11 +112,7 @@ export const uploadFile = async (files: File[], userId: string) => {
 				fileName: name,
 				mimeType: file.type,
 				size,
-				fileGroup: getFileGroup(file) as
-					| "image"
-					| "pdf"
-					| "text"
-					| "code",
+				fileGroup: getFileGroup(file) as "image" | "pdf" | "text" | "code",
 				data: {
 					id: savedFile.id,
 					uploadThingKey: key,
@@ -132,11 +128,7 @@ export const uploadFile = async (files: File[], userId: string) => {
 				fileName: file.name,
 				mimeType: file.type,
 				size: file.size,
-				fileGroup: getFileGroup(file) as
-					| "image"
-					| "pdf"
-					| "text"
-					| "code",
+				fileGroup: getFileGroup(file) as "image" | "pdf" | "text" | "code",
 				error: error instanceof Error ? error.message : "Upload failed",
 			} as UploadThingFileResult;
 		}

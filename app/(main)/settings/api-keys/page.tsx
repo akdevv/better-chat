@@ -16,9 +16,7 @@ export default function ApiKeysPage() {
 
 			{/* Help Section */}
 			<div className="space-y-3">
-				<h3 className="font-medium text-foreground">
-					Getting Your API Keys
-				</h3>
+				<h3 className="font-medium text-foreground">Getting Your API Keys</h3>
 				<div className="space-y-2 text-sm text-muted-foreground">
 					<div className="flex items-center gap-3">
 						<span className="w-20 font-medium">OpenAI</span>

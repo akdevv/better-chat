@@ -115,9 +115,7 @@ export function ApiKeyCards() {
 										<IconComponent className="h-5 w-5 text-foreground/70" />
 									</div>
 									<div className="flex items-center gap-3">
-										<h3 className="font-semibold text-base">
-											{provider.name}
-										</h3>
+										<h3 className="font-semibold text-base">{provider.name}</h3>
 										{getStatusBadge(apiKey)}
 									</div>
 								</div>
@@ -126,9 +124,7 @@ export function ApiKeyCards() {
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() =>
-												toggleEdit(provider.id)
-											}
+											onClick={() => toggleEdit(provider.id)}
 											disabled={apiKey.isLoading}
 											className="h-8 w-8 p-0 cursor-pointer"
 										>
@@ -151,19 +147,14 @@ export function ApiKeyCards() {
 											placeholder={provider.placeholder}
 											value={apiKey.key}
 											onChange={(e) =>
-												handleInputChange(
-													provider.id,
-													e.target.value,
-												)
+												handleInputChange(provider.id, e.target.value)
 											}
 											className="font-mono text-sm flex-1 bg-muted border border-border/20 rounded-lg px-4 py-3 focus:outline-none focus:ring-0"
 										/>
 										<Button
 											variant="outline"
 											size="sm"
-											onClick={() =>
-												deleteKey(provider.id)
-											}
+											onClick={() => deleteKey(provider.id)}
 											disabled={apiKey.isDeleting}
 											className="h-12 w-12 p-0 text-destructive hover:text-destructive hover:bg-destructive/10 border-none cursor-pointer"
 										>
@@ -178,9 +169,7 @@ export function ApiKeyCards() {
 									<div className="flex justify-end gap-2">
 										<Button
 											variant="outline"
-											onClick={() =>
-												cancelEdit(provider.id)
-											}
+											onClick={() => cancelEdit(provider.id)}
 											disabled={apiKey.isSaving}
 											className="h-8 px-3 cursor-pointer"
 										>
@@ -189,18 +178,12 @@ export function ApiKeyCards() {
 										<Button
 											variant="default"
 											onClick={() => saveKey(provider.id)}
-											disabled={
-												!apiKey.key.trim() ||
-												apiKey.isSaving
-											}
+											disabled={!apiKey.key.trim() || apiKey.isSaving}
 											className="h-8 px-3 cursor-pointer flex items-center gap-2"
 										>
 											{apiKey.isSaving ? (
 												<>
-													<Spinner
-														size="sm"
-														color="dark"
-													/>
+													<Spinner size="sm" color="dark" />
 													Saving...
 												</>
 											) : (
