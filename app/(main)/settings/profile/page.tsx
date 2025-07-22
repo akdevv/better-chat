@@ -4,10 +4,9 @@ import { useSession, signOut } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { HiOutlineChatBubbleLeftRight } from "react-icons/hi2";
-import { TbSend, TbCoin } from "react-icons/tb";
 import { MdDeleteOutline } from "react-icons/md";
 import { IoIosWarning } from "react-icons/io";
+import ProfileStats from "@/components/profile/profile-stats";
 
 export default function ProfilePage() {
 	const { data: session } = useSession();
@@ -31,28 +30,6 @@ export default function ProfilePage() {
 	const handleSignOut = () => {
 		signOut({ callbackUrl: "/auth/login" });
 	};
-
-	// Placeholder usage statistics
-	const usageStats = [
-		{
-			icon: HiOutlineChatBubbleLeftRight,
-			value: "127",
-			label: "Total Chats",
-			color: "bg-blue-500",
-		},
-		{
-			icon: TbSend,
-			value: "2,341",
-			label: "Messages Sent",
-			color: "bg-green-500",
-		},
-		{
-			icon: TbCoin,
-			value: "8.2k",
-			label: "Tokens Used",
-			color: "bg-purple-500",
-		},
-	];
 
 	return (
 		<div className="space-y-4">
@@ -94,37 +71,7 @@ export default function ProfilePage() {
 			</Card>
 
 			{/* Usage Statistics */}
-			<div className="space-y-4 mt-10">
-				<h2 className="text-xl font-semibold">Usage Statistics</h2>
-
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-					{usageStats.map((stat, index) => {
-						const IconComponent = stat.icon;
-						return (
-							<Card
-								key={index}
-								className="p-4 bg-background border-border/50"
-							>
-								<div className="flex items-center gap-3">
-									<div
-										className={`p-2 rounded-lg ${stat.color}`}
-									>
-										<IconComponent className="h-5 w-5" />
-									</div>
-									<div className="space-y-0.5">
-										<p className="text-2xl font-bold">
-											{stat.value}
-										</p>
-										<p className="text-sm text-muted-foreground">
-											{stat.label}
-										</p>
-									</div>
-								</div>
-							</Card>
-						);
-					})}
-				</div>
-			</div>
+			<ProfileStats />
 
 			{/* Danger Zone */}
 			<Card className="p-4 bg-background border-border/50">

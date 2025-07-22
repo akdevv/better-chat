@@ -89,6 +89,7 @@ export const ChatInput = memo(({ maxHeight = 120 }: { maxHeight?: number }) => {
 			try {
 				await onSendMessage(e, uploadedFileIds, onFilesLinked);
 				clearFiles();
+				setInput("");
 			} catch (error) {
 				console.error("Failed to send message:", error);
 			}

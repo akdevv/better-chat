@@ -7,6 +7,17 @@ import { ArrowLeftIcon } from "lucide-react";
 
 export default function Header() {
 	const pathname = usePathname();
+	
+	const pageNames = {
+		profile: "Profile",
+		appearance: "Appearance",
+		"api-keys": "API Keys",
+		tools: "Tools",
+		integrations: "Integrations",
+	};
+
+	const currentPage = pathname.split("/").pop() || "";
+	const displayName = pageNames[currentPage as keyof typeof pageNames] || currentPage;
 
 	return (
 		<header className="border-b border-border/60">
@@ -24,7 +35,7 @@ export default function Header() {
 				<h1>
 					<span className="text-lg font-semibold">Settings / </span>
 					<span className="text-md text-muted-foreground">
-						{pathname.split("/").pop()}
+						{displayName}
 					</span>
 				</h1>
 			</div>
