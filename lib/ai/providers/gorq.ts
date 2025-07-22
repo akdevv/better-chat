@@ -64,16 +64,17 @@ export const createGroqStream = async (
 				// Cleanup
 				signal?.removeEventListener("abort", onAbort);
 				controller.close();
-			} catch (error: any) {
-				if (error.name === "AbortError" || signal?.aborted) {
+			} catch (error) {
+				const err = error as Error & { code?: string; name?: string };
+				if (err.name === "AbortError" || signal?.aborted) {
 					controller.close();
 				} else {
-					console.error("Groq streaming error:", error);
+					console.error("Groq streaming error:", err);
 					const aiError: AIError = new Error(
-						`Groq API error: ${error.message}`
+						`Groq API error: ${err.message ?? "Unknown error"}`
 					) as AIError;
 					aiError.provider = "groq";
-					aiError.code = error.code;
+					aiError.code = err.code ?? "unknown";
 					controller.error(aiError);
 				}
 			}

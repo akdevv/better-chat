@@ -89,7 +89,7 @@ export function ChatDropdown({
 		} finally {
 			setIsStarring(false);
 		}
-	}, [chat.id, chat.isStarred, toggleStar]);
+	}, [chat.id, toggleStar]);
 
 	return (
 		<>

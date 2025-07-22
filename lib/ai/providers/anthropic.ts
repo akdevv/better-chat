@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { getModelById } from "@/lib/ai/models";
-import { AIError, AIStreamOptions } from "@/lib/types/ai";
+import { AIStreamOptions } from "@/lib/types/ai";
 
 export const createAnthropicStream = async (
 	options: AIStreamOptions
@@ -78,7 +78,12 @@ export const createAnthropicStream = async (
 				// Cleanup
 				signal?.removeEventListener("abort", onAbort);
 				controller.close();
-			} catch (error) {}
+			} catch (error) {
+				const err = error as Error & { code?: string; name?: string };
+				if (err.name === "AbortError" || signal?.aborted) {
+					controller.close();
+				}
+			}
 		},
 	});
 };

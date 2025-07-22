@@ -69,16 +69,17 @@ export const createGoogleStream = async (
 				// Cleanup
 				signal?.removeEventListener("abort", onAbort);
 				controller.close();
-			} catch (error: any) {
-				if (error.name === "AbortError" || signal?.aborted) {
+			} catch (error) {
+				const err = error as Error & { code?: string; name?: string };
+				if (err.name === "AbortError" || signal?.aborted) {
 					controller.close();
 				} else {
-					console.error("Google streaming error:", error);
+					console.error("Google streaming error:", err);
 					const aiError: AIError = new Error(
-						`Google API error: ${error.message}`
+						`Google API error: ${err.message ?? "Unknown error"}`
 					) as AIError;
 					aiError.provider = "google";
-					aiError.code = error.code;
+					aiError.code = err.code ?? "unknown";
 					controller.error(aiError);
 				}
 			}

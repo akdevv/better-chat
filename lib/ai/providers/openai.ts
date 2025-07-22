@@ -65,16 +65,17 @@ export const createOpenAIStream = async (
 				// Cleanup
 				signal?.removeEventListener("abort", onAbort);
 				controller.close();
-			} catch (error: any) {
-				if (error.name === "AbortError" || signal?.aborted) {
+			} catch (error) {
+				const err = error as Error & { code?: string; name?: string };
+				if (err.name === "AbortError" || signal?.aborted) {
 					controller.close();
 				} else {
 					console.error("OpenAI streaming error:", error);
 					const aiError: AIError = new Error(
-						`OpenAI API error: ${error.message}`
+						`OpenAI API error: ${err.message ?? "Unknown error"}`
 					) as AIError;
 					aiError.provider = "openai";
-					aiError.code = error.code;
+					aiError.code = err.code ?? "unknown";
 					controller.error(aiError);
 				}
 			}

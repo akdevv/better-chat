@@ -12,16 +12,24 @@ import { createGoogleStream } from "./providers/google";
 
 const MAX_CONTEXT_MESSAGES = 20;
 
+interface UserApiKey {
+	encryptedKey: string;
+	lastValidated?: Date;
+	isValidated: boolean;
+}
+
 // Get user's API keys from db
-const getUserApiKeys = async (userId: string): Promise<Record<string, any>> => {
+const getUserApiKeys = async (
+	userId: string
+): Promise<Record<string, UserApiKey>> => {
 	try {
 		const apiKeys = await db.apiKey.findMany({ where: { userId } });
 
-		const keyMap: Record<string, any> = {};
+		const keyMap: Record<string, UserApiKey> = {};
 		for (const key of apiKeys) {
 			keyMap[key.provider] = {
 				encryptedKey: key.encryptedKey,
-				lastValidated: key.lastValidated,
+				lastValidated: key.lastValidated ?? undefined,
 				isValidated: key.isValidated,
 			};
 		}
@@ -77,7 +85,7 @@ const verifyApiKey = async (modelId: string, userId: string) => {
 
 	try {
 		return decrypt(providerKey.encryptedKey, userId);
-	} catch (error) {
+	} catch {
 		const decryptError = new Error(
 			`Failed to decrypt ${model.provider} API key.`
 		) as AIError;
@@ -95,8 +103,7 @@ const countTokens = (message: string) => {
 const validateChatInput = (
 	model: AIModel,
 	currentMessage: string,
-	messages: AIMessage[] = [],
-	files: FileData[] = []
+	messages: AIMessage[] = []
 ) => {
 	if (currentMessage.length > model.maxMessageLength) {
 		const error = new Error("Your message is too long.") as AIError;
@@ -171,7 +178,7 @@ const prepareMessages = async (
 ): Promise<AIMessage[]> => {
 	const files = await getFilesData(fileIds);
 
-	validateChatInput(model, currentMessage, messages, files);
+	validateChatInput(model, currentMessage, messages);
 
 	// Generate file context prompt if files are attached
 	const fileContextPrompt =

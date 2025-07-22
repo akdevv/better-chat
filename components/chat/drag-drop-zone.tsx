@@ -18,7 +18,7 @@ export const DragDropZone = ({
 	disabled = false,
 	maxFiles = 10,
 }: DragDropZoneProps) => {
-	const [isDragActive, setIsDragActive] = useState(false);
+	const [, setIsDragActive] = useState(false);
 	const [isDragOver, setIsDragOver] = useState(false);
 	const dragCounterRef = useRef(0);
 

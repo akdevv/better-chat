@@ -81,7 +81,7 @@ export const uploadFile = async (files: File[], userId: string) => {
 
 	const results: UploadThingFileResult[] = [];
 
-	const uploadPromises = files.map(async (file, index) => {
+	const uploadPromises = files.map(async (file) => {
 		try {
 			const uploadResult = await utapi.uploadFiles([file]);
 			if (!uploadResult || !uploadResult[0] || !uploadResult[0].data) {

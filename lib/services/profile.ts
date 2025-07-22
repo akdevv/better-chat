@@ -1,6 +1,6 @@
 import { db } from "@/lib/prisma";
 
-const cache = new Map<string, { data: any; timestamp: number }>();
+const cache = new Map<string, { data: ProfileStats; timestamp: number }>();
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 
 export interface ProfileStats {
