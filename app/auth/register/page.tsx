@@ -63,14 +63,14 @@ export default function RegisterPage() {
 			});
 
 			if (signInResult?.error) {
-				router.push("/chat");
-			} else {
 				setError(
 					"Account created but failed to sign in. Please try logging in.",
 				);
 				toast.error(
 					"Account created but failed to sign in. Please try logging in.",
 				);
+			} else {
+				router.push("/chat");
 			}
 		} catch (err) {
 			const errorMessage =

@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { Button } from "@/components/ui/button";
-import { FaRegMessage } from "react-icons/fa6";
 import { SidebarContent } from "./sidebar-content";
 import { GoSidebarCollapse, GoSidebarExpand } from "react-icons/go";
 
@@ -20,8 +20,16 @@ export function DesktopSidebar() {
 			<div className="flex items-center justify-between p-3 border-b border-border">
 				{!isCollapsed && (
 					<div className="flex items-center gap-2">
-						<FaRegMessage className="h-4 w-4 text-primary" />
-						<span className="font-bold text-primary">BetterChat</span>
+						<Image
+							src="/logo.svg"
+							alt="Better Chat Logo"
+							width={16}
+							height={16}
+							className="h-4 w-4"
+						/>
+						<span className="font-bold text-primary">
+							BetterChat
+						</span>
 					</div>
 				)}
 
@@ -33,7 +41,13 @@ export function DesktopSidebar() {
 				>
 					{isCollapsed ? (
 						<>
-							<FaRegMessage className="h-4 w-4 text-primary group-hover:hidden transition-all duration-300" />
+							<Image
+								src="/logo.svg"
+								alt="Better Chat Logo"
+								width={16}
+								height={16}
+								className="h-4 w-4 group-hover:hidden transition-all duration-300"
+							/>
 							<GoSidebarCollapse className="h-4 w-4 hidden group-hover:block transition-all duration-300" />
 						</>
 					) : (

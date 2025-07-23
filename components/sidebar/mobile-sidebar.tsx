@@ -1,10 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useSidebar } from "@/contexts/sidebar-context";
 import { Button } from "@/components/ui/button";
 import { GoSidebarCollapse } from "react-icons/go";
 import { SidebarContent } from "./sidebar-content";
-import { FaRegMessage, FaXmark } from "react-icons/fa6";
+import { FaXmark } from "react-icons/fa6";
 
 export function MobileSidebar() {
 	const { isMobileMenuOpen, toggleSidebar } = useSidebar();
@@ -39,8 +40,16 @@ export function MobileSidebar() {
 				{/* Header */}
 				<div className="flex items-center justify-between p-3 border-b border-border">
 					<div className="flex items-center gap-2">
-						<FaRegMessage className="h-4 w-4 text-primary" />
-						<span className="font-bold text-primary">BetterChat</span>
+						<Image
+							src="/logo.svg"
+							alt="Better Chat Logo"
+							width={16}
+							height={16}
+							className="h-4 w-4"
+						/>
+						<span className="font-bold text-primary">
+							BetterChat
+						</span>
 					</div>
 					<Button
 						variant="ghost"

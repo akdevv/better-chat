@@ -5,7 +5,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
 	title: "Better Chat",
-	description: "AI chat app with multiple models, MCP tools, and custom agents",
+	description:
+		"AI chat app with multiple models, MCP tools, and custom agents",
+	icons: {
+		icon: "/favicon.ico",
+	},
 };
 
 export default function RootLayout({
